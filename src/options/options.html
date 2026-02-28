@@ -159,6 +159,7 @@
                             <option value="weakening" data-i18n="msgWeakening" >Weakening</option>
                             <option value="mask" data-i18n="msgMask" >Mask</option>
                             <option value="highlight" data-i18n="msgHighlight">Highlight</option>
+                            <option value="separator">Separator</option>
                         </select>
                       </div>
                   </div>
@@ -185,9 +186,47 @@
             <div id="translations" class="w3-container">
                 <p><b data-i18n="lblPageTranslationService">Page translation service</b></p>
                 <select id="pageTranslatorService" class="w3-select w3-margin">
+                    <option value="openai">OpenAI Compatible (LLM)</option>
                     <option value="google">Google</option>
                     <option value="yandex">Yandex</option>
                 </select>
+                <br>
+                <div id="openaiSettings" class="w3-card w3-padding w3-round w3-margin-bottom">
+                    <p><b>LLM API Settings</b></p>
+                    <p><small style="color:#666;">Use OpenAI-compatible APIs (OpenAI / DeepSeek / Moonshot / custom endpoint)</small></p>
+
+                    <p><b>Provider preset</b></p>
+                    <select id="openaiProviderPreset" class="w3-select w3-margin">
+                        <option value="openai">OpenAI</option>
+                        <option value="deepseek">DeepSeek</option>
+                        <option value="moonshot">Moonshot</option>
+                        <option value="custom">Custom</option>
+                    </select>
+
+                    <p><b>API URL</b></p>
+                    <input id="openaiApiUrl" class="w3-input w3-border w3-round w3-margin-bottom" type="url" placeholder="https://api.openai.com/v1/chat/completions">
+
+                    <p><b>API Key</b></p>
+                    <div class="llm-row">
+                        <input id="openaiApiKey" class="w3-input w3-border w3-round" type="password" placeholder="sk-...">
+                        <button id="toggleOpenaiApiKey" class="w3-button w3-light-grey w3-round" type="button">Show</button>
+                    </div>
+
+                    <p><b>Model</b></p>
+                    <input id="openaiModel" class="w3-input w3-border w3-round w3-margin-bottom" type="text" placeholder="gpt-4o-mini">
+
+                    <p><b>Prompt template (optional)</b></p>
+                    <textarea id="openaiPrompt" class="w3-input w3-border w3-round w3-margin-bottom" rows="4" placeholder="Leave empty to use default prompt"></textarea>
+
+                    <p><b>Temperature</b></p>
+                    <input id="openaiTemperature" class="w3-input w3-border w3-round w3-margin-bottom" type="number" step="0.1" min="0" max="2">
+
+                    <p><b>Max tokens</b></p>
+                    <input id="openaiMaxTokens" class="w3-input w3-border w3-round w3-margin-bottom" type="number" min="1" max="8192">
+
+                    <button id="testOpenaiConnection" class="w3-button w3-blue w3-round" type="button">Test API Connection</button>
+                    <span id="openaiConnectionStatus" class="w3-margin-left"></span>
+                </div>
                 <br>
                 <p><b data-i18n="lblTranslateDynamicallyCreatedContent">Translate dynamically created content</b></p>
                 <select id="translateDynamicallyCreatedContent" class="w3-select w3-margin">
@@ -311,6 +350,7 @@
     <script src="/lib/config.js"></script>
     <script src="/lib/platformInfo.js"></script>
     <script src="/lib/i18n.js"></script>
+    <script src="llmConfig.js"></script>
     <script src="options.js"></script>
 </body>
 

@@ -422,8 +422,151 @@ twpConfig.onReady(function () {
     // translations options
     $("#pageTranslatorService").onchange = e => {
         twpConfig.set("pageTranslatorService", e.target.value)
+        syncOpenaiSettingsVisibility()
     }
     $("#pageTranslatorService").value = twpConfig.get("pageTranslatorService")
+    function syncOpenaiSettingsVisibility() {
+        $("#openaiSettings").style.display = $("#pageTranslatorService").value === "openai" ? "block" : "none"
+    }
+    syncOpenaiSettingsVisibility()
+
+    const openaiProviderPreset = $("#openaiProviderPreset")
+    const openaiApiUrl = $("#openaiApiUrl")
+    const openaiApiKey = $("#openaiApiKey")
+    const openaiModel = $("#openaiModel")
+    const openaiPrompt = $("#openaiPrompt")
+    const openaiTemperature = $("#openaiTemperature")
+    const openaiMaxTokens = $("#openaiMaxTokens")
+    const openaiConnectionStatus = $("#openaiConnectionStatus")
+    const toggleOpenaiApiKey = $("#toggleOpenaiApiKey")
+    const testOpenaiConnection = $("#testOpenaiConnection")
+
+    function setOpenaiStatus(text, color = "#666") {
+        openaiConnectionStatus.textContent = text
+        openaiConnectionStatus.style.color = color
+    }
+
+    function detectPresetByUrl(url) {
+        for (const provider in twpLlmConfig.providerPresets) {
+            if (twpLlmConfig.providerPresets[provider] === url) return provider
+        }
+        return "custom"
+    }
+
+    openaiApiUrl.value = twpConfig.get("openaiApiUrl") || twpLlmConfig.getProviderPreset("openai")
+    openaiApiKey.value = twpConfig.get("openaiApiKey") || ""
+    openaiModel.value = twpConfig.get("openaiModel") || "gpt-4o-mini"
+    openaiPrompt.value = twpConfig.get("openaiPrompt") || ""
+    openaiTemperature.value = twpConfig.get("openaiTemperature")
+    openaiMaxTokens.value = twpConfig.get("openaiMaxTokens")
+    openaiProviderPreset.value = detectPresetByUrl(openaiApiUrl.value)
+
+    openaiProviderPreset.onchange = (e) => {
+        const preset = e.target.value
+        if (preset === "custom") return
+        const presetUrl = twpLlmConfig.getProviderPreset(preset)
+        if (presetUrl) {
+            openaiApiUrl.value = presetUrl
+            twpConfig.set("openaiApiUrl", presetUrl)
+            setOpenaiStatus("Preset applied", "#2e7d32")
+        }
+    }
+
+    openaiApiUrl.onchange = (e) => {
+        const value = e.target.value.trim()
+        if (!twpLlmConfig.isValidApiUrl(value)) {
+            e.target.setCustomValidity("Invalid API URL")
+            e.target.reportValidity()
+            setOpenaiStatus("Invalid API URL", "#b71c1c")
+            return
+        }
+        e.target.setCustomValidity("")
+        twpConfig.set("openaiApiUrl", value)
+        openaiProviderPreset.value = detectPresetByUrl(value)
+        setOpenaiStatus("API URL saved", "#2e7d32")
+    }
+
+    openaiApiKey.onchange = (e) => {
+        twpConfig.set("openaiApiKey", e.target.value.trim())
+        setOpenaiStatus("API key saved", "#2e7d32")
+    }
+
+    openaiModel.onchange = (e) => {
+        const value = e.target.value.trim() || "gpt-4o-mini"
+        e.target.value = value
+        twpConfig.set("openaiModel", value)
+    }
+
+    openaiPrompt.onchange = (e) => {
+        twpConfig.set("openaiPrompt", e.target.value)
+    }
+
+    openaiTemperature.onchange = (e) => {
+        const value = Number(e.target.value)
+        twpConfig.set("openaiTemperature", Number.isFinite(value) ? value : 0)
+    }
+
+    openaiMaxTokens.onchange = (e) => {
+        const value = Number(e.target.value)
+        twpConfig.set("openaiMaxTokens", Number.isFinite(value) && value > 0 ? value : 2048)
+    }
+
+    toggleOpenaiApiKey.onclick = () => {
+        if (openaiApiKey.type === "password") {
+            openaiApiKey.type = "text"
+            toggleOpenaiApiKey.textContent = "Hide"
+        } else {
+            openaiApiKey.type = "password"
+            toggleOpenaiApiKey.textContent = "Show"
+        }
+    }
+
+    testOpenaiConnection.onclick = async () => {
+        const apiUrl = openaiApiUrl.value.trim()
+        const apiKey = openaiApiKey.value.trim()
+        const model = openaiModel.value.trim() || "gpt-4o-mini"
+
+        if (!twpLlmConfig.isValidApiUrl(apiUrl)) {
+            setOpenaiStatus("Invalid API URL", "#b71c1c")
+            return
+        }
+        if (!apiKey) {
+            setOpenaiStatus("Missing API key", "#b71c1c")
+            return
+        }
+
+        setOpenaiStatus("Testing...", "#666")
+        testOpenaiConnection.setAttribute("disabled", "")
+        try {
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model,
+                    temperature: Number(openaiTemperature.value || 0),
+                    max_tokens: Number(openaiMaxTokens.value || 256),
+                    messages: [
+                        {
+                            role: "user",
+                            content: "Respond only with JSON: {\"detectedLanguage\":\"en\",\"translations\":[\"ok\"]}"
+                        }
+                    ]
+                })
+            })
+
+            if (!response.ok) {
+                throw new Error(`${response.status} ${response.statusText}`)
+            }
+            setOpenaiStatus("Connection successful", "#2e7d32")
+        } catch (error) {
+            setOpenaiStatus(`Connection failed: ${error.message}`, "#b71c1c")
+        } finally {
+            testOpenaiConnection.removeAttribute("disabled")
+        }
+    }
 
 
     $("#translateTag_pre").onchange = e => {

@@ -232,3 +232,10 @@ kbd {
   width: 100%;
   text-align: center;
 }
+
+.llm-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
