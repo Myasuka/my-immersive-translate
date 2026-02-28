@@ -311,6 +311,9 @@
   "lblPageTranslationService": {
     "message": "页面翻译服务"
   },
+  "lblEngine": {
+    "message": "引擎"
+  },
   "lblTextTranslationService": {
     "message": "文本翻译服务"
   },

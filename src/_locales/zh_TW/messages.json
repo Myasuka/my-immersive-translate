@@ -308,6 +308,9 @@
   "lblPageTranslationService": {
     "message": "網頁翻譯伺服器"
   },
+  "lblEngine": {
+    "message": "引擎"
+  },
   "lblTextTranslationService": {
     "message": "文字翻譯伺服器"
   },
