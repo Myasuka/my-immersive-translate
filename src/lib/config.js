@@ -6,11 +6,17 @@ const twpConfig = (function () {
   const defaultTargetLanguages = ["zh-CN"];
   /**
    * all configName available
-   * @typedef {"pageTranslatorService" | "textTranslatorService" | "ttsSpeed" | "enableDeepL" | "targetLanguage" | "targetLanguageTextTranslation" | "targetLanguages" | "alwaysTranslateSites" | "neverTranslateSites" | "sitesToTranslateWhenHovering" | "langsToTranslateWhenHovering" | "alwaysTranslateLangs" | "neverTranslateLangs" | "customDictionary" | "showTranslatePageContextMenu" | "showTranslateSelectedContextMenu" | "showButtonInTheAddressBar" | "showOriginalTextWhenHovering" | "showTranslateSelectedButton" | "showPopupMobile" | "useOldPopup" | "darkMode" | "popupBlueWhenSiteIsTranslated" | "popupPanelSection" | "showReleaseNotes" | "dontShowIfPageLangIsTargetLang" | "dontShowIfPageLangIsUnknown" | "dontShowIfSelectedTextIsTargetLang" | "dontShowIfSelectedTextIsUnknown" | "hotkeys" | "expandPanelTranslateSelectedText" | "translateTag_pre" | "dontSortResults" | "translateDynamicallyCreatedContent" | "autoTranslateWhenClickingALink" | "translateSelectedWhenPressTwice" | "translateTextOverMouseWhenPressTwice" | "translateClickingOnce"} DefaultConfigNames
+   * @typedef {"pageTranslatorService" | "textTranslatorService" | "openaiApiKey" | "openaiApiUrl" | "openaiModel" | "openaiPrompt" | "openaiMaxTokens" | "openaiTemperature" | "ttsSpeed" | "enableDeepL" | "targetLanguage" | "targetLanguageTextTranslation" | "targetLanguages" | "alwaysTranslateSites" | "neverTranslateSites" | "sitesToTranslateWhenHovering" | "langsToTranslateWhenHovering" | "alwaysTranslateLangs" | "neverTranslateLangs" | "customDictionary" | "showTranslatePageContextMenu" | "showTranslateSelectedContextMenu" | "showButtonInTheAddressBar" | "showOriginalTextWhenHovering" | "showTranslateSelectedButton" | "showPopupMobile" | "useOldPopup" | "darkMode" | "popupBlueWhenSiteIsTranslated" | "popupPanelSection" | "showReleaseNotes" | "dontShowIfPageLangIsTargetLang" | "dontShowIfPageLangIsUnknown" | "dontShowIfSelectedTextIsTargetLang" | "dontShowIfSelectedTextIsUnknown" | "hotkeys" | "expandPanelTranslateSelectedText" | "translateTag_pre" | "dontSortResults" | "translateDynamicallyCreatedContent" | "autoTranslateWhenClickingALink" | "translateSelectedWhenPressTwice" | "translateTextOverMouseWhenPressTwice" | "translateClickingOnce"} DefaultConfigNames
    */
   const defaultConfig = {
-    pageTranslatorService: "google", // google yandex
-    textTranslatorService: "google", // google yandex bing deepl
+    pageTranslatorService: "openai", // openai google yandex
+    textTranslatorService: "openai", // openai google yandex bing deepl
+    openaiApiKey: "",
+    openaiApiUrl: "https://api.openai.com/v1/chat/completions",
+    openaiModel: "gpt-4o-mini",
+    openaiPrompt: "",
+    openaiMaxTokens: 2048,
+    openaiTemperature: 0,
     ttsSpeed: 1.0,
     enableDeepL: "yes",
     isTranslateTitle: "no",

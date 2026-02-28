@@ -1076,9 +1076,90 @@ const translationService = (function () {
     }
   })();
 
+  const openaiService = new (class extends Service {
+    constructor() {
+      super(
+        "openai",
+        "",
+        "POST",
+        function cbTransformRequest(sourceArray) {
+          return JSON.stringify(sourceArray);
+        },
+        function cbParseResponse(response) {
+          return response;
+        },
+        function cbTransformResponse(result, dontSortResults) {
+          try {
+            const parsed = JSON.parse(result);
+            if (Array.isArray(parsed)) return parsed.map((item) => String(item));
+          } catch (e) {}
+          return [String(result || "")];
+        }
+      );
+    }
+
+    async makeRequest(sourceLanguage, targetLanguage, requests) {
+      const apiUrl =
+        twpConfig.get("openaiApiUrl") ||
+        "https://api.openai.com/v1/chat/completions";
+      const apiKey = twpConfig.get("openaiApiKey") || "";
+      const model = twpConfig.get("openaiModel") || "gpt-4o-mini";
+      const customPrompt = twpConfig.get("openaiPrompt") || "";
+      const temperature = Number(twpConfig.get("openaiTemperature"));
+      const maxTokens = Number(twpConfig.get("openaiMaxTokens"));
+
+      return await Promise.all(
+        requests.map(async (requestInfo) => {
+          let sourceArray = [];
+          try {
+            sourceArray = JSON.parse(requestInfo.originalText);
+          } catch (e) {
+            sourceArray = [requestInfo.originalText];
+          }
+          if (!Array.isArray(sourceArray)) {
+            sourceArray = [String(sourceArray)];
+          }
+
+          try {
+            const result = await openaiPrompt.requestTranslations({
+              apiUrl,
+              apiKey,
+              model,
+              sourceLanguage,
+              targetLanguage,
+              texts: sourceArray,
+              customPrompt,
+              temperature: Number.isFinite(temperature) ? temperature : 0,
+              maxTokens: Number.isFinite(maxTokens) ? maxTokens : 2048,
+            });
+
+            return {
+              text: JSON.stringify(result.translations),
+              detectedLanguage: result.detectedLanguage || "und",
+            };
+          } catch (error) {
+            console.warn("OpenAI translation failed, falling back to Google", error);
+            const fallback = await googleService.translate(
+              sourceLanguage,
+              targetLanguage,
+              [sourceArray],
+              true,
+              false
+            );
+            return {
+              text: JSON.stringify(fallback[0]),
+              detectedLanguage: sourceLanguage === "auto" ? "und" : sourceLanguage,
+            };
+          }
+        })
+      );
+    }
+  })();
+
   /** @type {Map<string, Service>} */
   const serviceList = new Map();
 
+  serviceList.set("openai", openaiService);
   serviceList.set("google", googleService);
   serviceList.set("yandex", yandexService);
   serviceList.set("bing", bingService);

@@ -5143,6 +5143,7 @@ const twpLang = (function () {
 
   twpLang.UILanguages = Object.keys(allLanguagesNames);
   twpLang.TargetLanguages = Object.keys(allLanguagesNames["en"]);
+  twpLang.SupportedLanguages.openai = [...twpLang.TargetLanguages];
 
   /**
    * get the list of localized languages for the current browser language
@@ -5156,7 +5157,7 @@ const twpLang = (function () {
 
   /** @type {Map<string, string>} */
   const alternatives = new Map();
-  const pageTranslationServices = ["google", "yandex"];
+  const pageTranslationServices = ["openai", "google", "yandex"];
   /**
    * gets an alternate translation service if the selected translation service does not support the current target language.
    * @param {string} lang
