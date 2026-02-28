@@ -403,6 +403,7 @@ const translationService = (function () {
       this.cbTransformResponse = cbTransformResponse;
       this.cbGetExtraParameters = cbGetExtraParameters;
       this.cbGetRequestBody = cbGetRequestBody;
+      this.maxRequestSize = 800;
       /** @type {Map<string, TranslationInfo>} */
       this.translationsInProgress = new Map();
     }
@@ -482,7 +483,7 @@ const translationService = (function () {
           } else {
             currentRequest.push(progressInfo);
             currentSize += progressInfo.originalText.length;
-            if (currentSize > 800) {
+            if (currentSize > this.maxRequestSize) {
               requests.push(currentRequest);
               currentSize = 0;
               currentRequest = [];
@@ -812,6 +813,7 @@ const translationService = (function () {
             .join("");
         }
       );
+      this.maxRequestSize = 3200;
     }
   })();
 

@@ -146,6 +146,7 @@ const openaiPrompt = (function () {
     });
 
     const normalizedApiUrl = normalizeApiUrl(apiUrl);
+    const startedAt = Date.now();
     const response = await fetchImpl(normalizedApiUrl, {
       method: "POST",
       headers: {
@@ -157,13 +158,30 @@ const openaiPrompt = (function () {
 
     if (!response.ok) {
       const errorBody = response.text ? await response.text() : "";
+      console.warn("[Immersive Translate][LLM] request failed", {
+        url: normalizedApiUrl,
+        model,
+        textCount: texts.length,
+        targetLanguage,
+        durationMs: Date.now() - startedAt,
+        status: response.status,
+        statusText: response.statusText,
+      });
       throw new Error(
         `OpenAI compatible request failed: ${response.status} ${response.statusText} ${errorBody}`.trim()
       );
     }
 
     const data = await response.json();
-    return parseOpenAIResponse(data, texts.length);
+    const parsed = parseOpenAIResponse(data, texts.length);
+    console.info("[Immersive Translate][LLM] request ok", {
+      url: normalizedApiUrl,
+      model,
+      textCount: texts.length,
+      targetLanguage,
+      durationMs: Date.now() - startedAt,
+    });
+    return parsed;
   }
 
   async function requestTranslationsWithFallback(options, fallbackFn) {
