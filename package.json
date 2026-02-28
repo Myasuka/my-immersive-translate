@@ -8,7 +8,8 @@
   "scripts": {
     "build": "npx gulp",
     "firefox": "npx gulp firefox-build ",
-    "chrome": "npx gulp chrome-build "
+    "chrome": "npx gulp chrome-build ",
+    "test": "node --test"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3",

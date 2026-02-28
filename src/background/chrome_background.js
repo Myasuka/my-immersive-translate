@@ -73,7 +73,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.action === "getTabHostName") {
         sendResponse(new URL(sender.tab.url).hostname)
     }else if (request.action === "getTabUrl") {
-        sendResponse(new URL(sender.tab.url))
+        sendResponse(sender.tab.url)
     } else if (request.action === "thisFrameIsInFocus") {
         chrome.tabs.sendMessage(sender.tab.id, {action: "anotherFrameIsInFocus"}, checkedLastError)
     } else if (request.action === "getTabMimeType") {
@@ -183,34 +183,24 @@ function resetBrowserAction(forceShow = false) {
 if (typeof chrome.contextMenus !== "undefined") {
     chrome.contextMenus.removeAll()
     chrome.contextMenus.create({
-        id: "browserAction-showPopup",
+        id: "action-showPopup",
         title: chrome.i18n.getMessage("btnShowPopup"),
-        contexts: ["browser_action"]
-    })
-    chrome.contextMenus.create({
-        id: "pageAction-showPopup",
-        title: chrome.i18n.getMessage("btnShowPopup"),
-        contexts: ["page_action"]
+        contexts: ["action"]
     })
     chrome.contextMenus.create({
         id: "never-translate",
         title: chrome.i18n.getMessage("btnNeverTranslate"),
-        contexts: ["browser_action", "page_action"]
+        contexts: ["action"]
     })
     chrome.contextMenus.create({
         id: "more-options",
         title: chrome.i18n.getMessage("btnMoreOptions"),
-        contexts: ["browser_action", "page_action"]
+        contexts: ["action"]
     })
     chrome.contextMenus.create({
-        id: "browserAction-pdf-to-html",
+        id: "action-pdf-to-html",
         title: chrome.i18n.getMessage("msgPDFtoHTML"),
-        contexts: ["browser_action"]
-    })
-    chrome.contextMenus.create({
-        id: "pageAction-pdf-to-html",
-        title: chrome.i18n.getMessage("msgPDFtoHTML"),
-        contexts: ["page_action"]
+        contexts: ["action"]
     })
 
     const tabHasContentScript = {}
@@ -229,18 +219,12 @@ if (typeof chrome.contextMenus !== "undefined") {
                   action: "toggle-translation"
               }, checkedLastError)
             }
-        } else if (info.menuItemId == "browserAction-showPopup") {
+        } else if (info.menuItemId == "action-showPopup") {
             resetBrowserAction(true)
 
             chrome.action.openPopup()
 
             resetBrowserAction()
-        } else if (info.menuItemId == "pageAction-showPopup") {
-            resetPageAction(tab.id, true)
-
-            chrome.action.openPopup()
-
-            resetPageAction(tab.id)
         } else if (info.menuItemId == "never-translate") {
             const hostname = new URL(tab.url).hostname
             twpConfig.addSiteToNeverTranslate(hostname)
@@ -248,16 +232,7 @@ if (typeof chrome.contextMenus !== "undefined") {
             chrome.tabs.create({
                 url: chrome.runtime.getURL("/options/options.html")
             })
-        } else if (info.menuItemId == "browserAction-pdf-to-html") {
-            const mimeType = tabToMimeType[tab.id]
-            if (mimeType && mimeType.toLowerCase() === "application/pdf" && typeof chrome.action.openPopup !== 'undefined') {
-                chrome.action.openPopup()
-            } else {
-                chrome.tabs.create({
-                    url: "https://translatewebpages.org/"
-                })
-            }
-        } else if (info.menuItemId == "pageAction-pdf-to-html") {
+        } else if (info.menuItemId == "action-pdf-to-html") {
             const mimeType = tabToMimeType[tab.id]
             if (mimeType && mimeType.toLowerCase() === "application/pdf" && typeof chrome.action.openPopup !== 'undefined') {
                 chrome.action.openPopup()
@@ -318,11 +293,11 @@ if (typeof chrome.contextMenus !== "undefined") {
 
 twpConfig.onReady(() => {
     if (platformInfo.isMobile.any) {
-        chrome.tabs.query({}, tabs => tabs.forEach(tab => chrome.action.hide(tab.id)))
+        chrome.tabs.query({}, tabs => tabs.forEach(tab => chrome.action.disable(tab.id)))
 
         chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             if (changeInfo.status == "loading") {
-                chrome.action.hide(tabId)
+                chrome.action.disable(tabId)
             }
         })
 
@@ -334,16 +309,6 @@ twpConfig.onReady(() => {
             }, checkedLastError)
         })
     } else {
-        if (chrome.action) {
-            chrome.action.onClicked.addListener(tab => {
-                if (twpConfig.get("translateClickingOnce") === "yes") {
-                    chrome.tabs.sendMessage(tab.id, {
-                        action: "toggle-translation"
-                    }, checkedLastError)
-                }
-            })
-
-        }
         chrome.action.onClicked.addListener(tab => {
             if (twpConfig.get("translateClickingOnce") === "yes") {
                 chrome.tabs.sendMessage(tab.id, {
@@ -435,9 +400,9 @@ twpConfig.onReady(() => {
                 })
 
                 if (twpConfig.get("showButtonInTheAddressBar") == "no") {
-                    chrome.action.hide(tabId)
+                    chrome.action.disable(tabId)
                 } else {
-                    chrome.action.show(tabId)
+                    chrome.action.enable(tabId)
                 }
             }
 
@@ -489,7 +454,7 @@ twpConfig.onReady(() => {
 
 if (typeof chrome.commands !== "undefined") {
     chrome.commands.onCommand.addListener(command => {
-        if (command === "hotkey-toggle-translation") {
+        if (command === "hotkey-toggle-translation" || command === "hotkey-toggle-translation-alt") {
             chrome.tabs.query({
                 currentWindow: true,
                 active: true
@@ -530,12 +495,11 @@ if (typeof chrome.commands !== "undefined") {
                     action: "swapTranslationService"
                 }, checkedLastError))
 
+            const services = ["openai", "google", "yandex"]
             let currentPageTranslatorService = twpConfig.get("pageTranslatorService")
-            if (currentPageTranslatorService === "google") {
-                currentPageTranslatorService = "yandex"
-            } else {
-                currentPageTranslatorService = "google"
-            }
+            const currentIndex = services.indexOf(currentPageTranslatorService)
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % services.length
+            currentPageTranslatorService = services[nextIndex]
 
             twpConfig.set("pageTranslatorService", currentPageTranslatorService)
         } 

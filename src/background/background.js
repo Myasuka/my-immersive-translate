@@ -491,7 +491,7 @@ twpConfig.onReady(() => {
 
 if (typeof chrome.commands !== "undefined") {
     chrome.commands.onCommand.addListener(command => {
-        if (command === "hotkey-toggle-translation") {
+        if (command === "hotkey-toggle-translation" || command === "hotkey-toggle-translation-alt") {
             chrome.tabs.query({
                 currentWindow: true,
                 active: true
