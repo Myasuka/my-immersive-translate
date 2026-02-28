@@ -14,6 +14,13 @@
             },
             "description": "__MSG_lblSwitchTranslatedAndOriginal__"
         },
+        "hotkey-toggle-translation-alt": {
+            "suggested_key": {
+                "default": "Alt+A",
+                "mac": "Alt+A"
+            },
+            "description": "__MSG_lblSwitchTranslatedAndOriginal__"
+        },
         "hotkey-toggle-dual": {
             "suggested_key": {
                 "default": "Ctrl+D",
@@ -95,4 +102,3 @@
       "service_worker": "background/background-entry.js"
     }
 }
-

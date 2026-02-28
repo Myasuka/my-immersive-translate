@@ -3,7 +3,9 @@ const specialRules = [
     "hostname": [
       "twitter.com",
       "tweetdeck.twitter.com",
-      "mobile.twitter.com"
+      "mobile.twitter.com",
+      "x.com",
+      "www.x.com"
     ],
     "selectors": [
       "[data-testid=\"tweetText\"]",
@@ -15,6 +17,20 @@ const specialRules = [
     ],
     "detectLanguage":true
 
+  },
+  {
+    "name":"medium",
+    "hostname": [
+      "medium.com",
+      "www.medium.com"
+    ],
+    "selectors": [
+      "article h1",
+      "article h2",
+      "article p",
+      "article li"
+    ],
+    "detectLanguage": true
   },
   {
     "name":"ycombinator",

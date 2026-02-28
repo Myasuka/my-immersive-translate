@@ -243,6 +243,9 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     }
     twpConfig.onChanged((name, newvalue) => {
         switch (name) {
+            case "pageTranslatorService":
+                currentPageTranslatorService = newvalue
+                break
             case "translateTag_pre":
                 const index = htmlTagsInlineIgnore.indexOf('PRE')
                 if (index !== -1) {
@@ -277,6 +280,64 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     let removedNodes = []
 
     let nodesToRestore = []
+    let translationProgressElement = null
+    let floatingTranslateButton = null
+
+    function ensureTranslationProgressElement() {
+        if (window.top !== window) return null
+        if (!translationProgressElement) {
+            translationProgressElement = document.createElement("div")
+            translationProgressElement.id = "immersive-translate-progress"
+            translationProgressElement.setAttribute("style", "position:fixed;top:12px;right:12px;z-index:2147483647;background:#1976d2;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.2);")
+            document.documentElement.appendChild(translationProgressElement)
+        }
+        return translationProgressElement
+    }
+
+    function showTranslationProgress(text) {
+        const el = ensureTranslationProgressElement()
+        if (!el) return
+        el.textContent = text
+        el.style.display = "block"
+    }
+
+    function hideTranslationProgress() {
+        const el = ensureTranslationProgressElement()
+        if (!el) return
+        el.style.display = "none"
+    }
+
+    function ensureFloatingTranslateButton() {
+        if (window.top !== window || floatingTranslateButton) return
+        floatingTranslateButton = document.createElement("button")
+        floatingTranslateButton.id = "immersive-translate-floating-button"
+        floatingTranslateButton.setAttribute("style", "position:fixed;right:16px;bottom:16px;z-index:2147483647;background:#1976d2;color:#fff;border:0;border-radius:999px;padding:8px 12px;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);")
+        floatingTranslateButton.onclick = () => {
+            if (pageLanguageState === "translated") {
+                pageTranslator.restorePage()
+            } else {
+                pageTranslator.translatePage()
+            }
+        }
+        document.documentElement.appendChild(floatingTranslateButton)
+    }
+
+    function updateFloatingTranslateButton() {
+        if (!floatingTranslateButton) return
+        if (pageLanguageState === "translating") {
+            floatingTranslateButton.textContent = "Translating..."
+            floatingTranslateButton.disabled = true
+        } else if (pageLanguageState === "translated") {
+            floatingTranslateButton.textContent = "Show Original"
+            floatingTranslateButton.disabled = false
+        } else {
+            floatingTranslateButton.textContent = "Translate"
+            floatingTranslateButton.disabled = false
+        }
+    }
+
+    ensureFloatingTranslateButton()
+    updateFloatingTranslateButton()
 
     async function translateNewNodes() {
         try {
@@ -637,10 +698,12 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
             style+='background-color: #EAD0B3;padding: 3px 0;'
           }else if(dualStyle==="weakening"){
             style+='opacity: 0.4;'
-          }else if(dualStyle==="maskxxxxxxxx"){
+          }else if(dualStyle==="mask"){
             style+="filter: blur(5px);transition: filter 0.5s ease;"
             // add class immersive-translate-mask
             fontNode.classList.add("immersive-translate-mask")
+          }else if(dualStyle==="separator"){
+            style+="display:block;border-left: 3px solid #72ECE9;padding-left: 8px;margin: 6px 0;"
           }else if(dualStyle){
             style+=dualStyle;
           }
@@ -805,10 +868,22 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                                 }
                             })
                     }
+                    if (pageLanguageState === "translated" && currentFooCount === fooCount) {
+                        const remainingPieces = piecesToTranslate.filter(item => !item.isTranslated).length
+                        const remainingAttrs = attributesToTranslate.filter(item => !item.isTranslated).length
+                        const remainingTotal = remainingPieces + remainingAttrs
+                        if (remainingTotal > 0) {
+                            showTranslationProgress(`Translating... ${remainingTotal} left`)
+                        } else {
+                            showTranslationProgress("Translation complete")
+                            setTimeout(hideTranslationProgress, 1200)
+                        }
+                    }
                 })()
             }
         } catch (e) {
             console.error(e)
+            showTranslationProgress("Translation error")
         }
         setTimeout(translateDynamically, 600)
     }
@@ -839,11 +914,19 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     pageTranslator.onPageLanguageStateChange = function (callback) {
         pageLanguageStateObservers.push(callback)
     }
+    pageTranslator.onPageLanguageStateChange(updateFloatingTranslateButton)
 
     pageTranslator.translatePage = async function (targetLanguage) {
         fooCount++
         pageTranslator.restorePage()
         showOriginal.enable()
+        pageLanguageState = "translating"
+        showTranslationProgress("Preparing translation...")
+        chrome.runtime.sendMessage({
+            action: "setPageLanguageState",
+            pageLanguageState
+        })
+        pageLanguageStateObservers.forEach(callback => callback(pageLanguageState))
 
         dontSortResults = twpConfig.get("dontSortResults") == "yes" ? true : false
 
@@ -885,6 +968,7 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     pageTranslator.restorePage = function () {
         fooCount++
         piecesToTranslate = []
+        hideTranslationProgress()
 
         showOriginal.disable()
         disableMutatinObserver()
@@ -920,11 +1004,10 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     }
 
     pageTranslator.swapTranslationService = function () {
-        if (currentPageTranslatorService === "google") {
-            currentPageTranslatorService = "yandex"
-        } else {
-            currentPageTranslatorService = "google"
-        }
+        const services = ["openai", "google", "yandex"]
+        const currentIndex = services.indexOf(currentPageTranslatorService)
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % services.length
+        currentPageTranslatorService = services[nextIndex]
         if (pageLanguageState === "translated") {
             pageTranslator.translatePage()
         }
@@ -1077,4 +1160,3 @@ function detectPageLanguage() {
   })
 
 }
-

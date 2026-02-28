@@ -23,6 +23,7 @@ twpConfig.onReady(function () {
     const lblAlwaysTranslate = document.getElementById("lblAlwaysTranslateThisLang")
 
     const selectTargetLanguage = document.getElementById("selectTargetLanguage")
+    const selectEngine = document.getElementById("selectEngine")
 
     const divOptionsList = document.getElementById("divOptionsList")
 
@@ -198,9 +199,19 @@ twpConfig.onReady(function () {
         if (currentPageTranslatorService == "yandex") {
             $("#btnOptions option[value='translateInExternalSite']").textContent = chrome.i18n.getMessage("msgOpenOnYandexTranslator")
             $("#iconTranslate").setAttribute("src", "/icons/yandex-translate-32.png")
+        } else if (currentPageTranslatorService == "openai") {
+            $("#btnOptions option[value='translateInExternalSite']").textContent = "Open in Google Translate"
+            $("#iconTranslate").setAttribute("src", "/icons/icon-32.png")
         } else { // google
             $("#btnOptions option[value='translateInExternalSite']").textContent = chrome.i18n.getMessage("btnOpenOnGoogleTranslate")
             $("#iconTranslate").setAttribute("src", "/icons/google-translate-32.png")
+        }
+        if ($("#translationEngineStatus")) {
+            const engineLabel = chrome.i18n.getMessage("lblEngine") || "Engine"
+            $("#translationEngineStatus").textContent = `${engineLabel}: ${currentPageTranslatorService}`
+        }
+        if (selectEngine) {
+            selectEngine.value = currentPageTranslatorService
         }
 
         let showAlwaysTranslateCheckbox = false
@@ -352,25 +363,34 @@ twpConfig.onReady(function () {
     }
 
     $("#divIconTranslate").addEventListener("click", () => {
-        chrome.tabs.query({
-            active: true,
-            currentWindow: true
-        }, tabs => {
-            chrome.tabs.sendMessage(tabs[0].id, {
-                action: "swapTranslationService"
-            }, checkedLastError)
-        })
-
-        if (currentPageTranslatorService === "google") {
-            currentPageTranslatorService = "yandex"
-        } else {
-            currentPageTranslatorService = "google"
+        const services = ["openai", "google", "yandex"]
+        const currentIndex = services.indexOf(currentPageTranslatorService)
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % services.length
+        currentPageTranslatorService = services[nextIndex]
+        if (selectEngine) {
+            selectEngine.value = currentPageTranslatorService
+            selectEngine.dispatchEvent(new Event("change"))
         }
-
-        twpConfig.set("pageTranslatorService", currentPageTranslatorService)
-
-        updateInterface()
     })
+
+    if (selectEngine) {
+        selectEngine.onchange = (event) => {
+            currentPageTranslatorService = event.target.value
+            twpConfig.set("pageTranslatorService", currentPageTranslatorService)
+            chrome.tabs.query({
+                active: true,
+                currentWindow: true
+            }, tabs => {
+                if (currentPageLanguageState === "translated") {
+                    chrome.tabs.sendMessage(tabs[0].id, {
+                        action: "translatePage",
+                        targetLanguage: selectTargetLanguage.value
+                    }, checkedLastError)
+                }
+            })
+            updateInterface()
+        }
+    }
 
     chrome.tabs.query({
         active: true,
