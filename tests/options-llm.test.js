@@ -28,3 +28,22 @@ test("isValidApiUrl should validate http/https URLs", () => {
   assert.equal(twpLlmConfig.isValidApiUrl("ftp://example.com"), false);
   assert.equal(twpLlmConfig.isValidApiUrl("not-a-url"), false);
 });
+
+test("normalizeApiUrl should convert base URLs to chat completions endpoints", () => {
+  assert.equal(
+    twpLlmConfig.normalizeApiUrl("https://api.openai.com/v1"),
+    "https://api.openai.com/v1/chat/completions"
+  );
+  assert.equal(
+    twpLlmConfig.normalizeApiUrl("https://api.openai.com"),
+    "https://api.openai.com/v1/chat/completions"
+  );
+  assert.equal(
+    twpLlmConfig.normalizeApiUrl("https://api.deepseek.com"),
+    "https://api.deepseek.com/chat/completions"
+  );
+  assert.equal(
+    twpLlmConfig.normalizeApiUrl("https://example.com/custom"),
+    "https://example.com/custom/chat/completions"
+  );
+});

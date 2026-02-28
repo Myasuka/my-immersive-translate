@@ -101,6 +101,36 @@ test("requestTranslations should call fetch and return parsed result", async () 
   assert.equal(result.detectedLanguage, "en");
 });
 
+test("requestTranslations should normalize base API URL before request", async () => {
+  const mockFetch = async (url) => {
+    assert.equal(url, "https://api.openai.com/v1/chat/completions");
+    return {
+      ok: true,
+      json: async () => ({
+        choices: [
+          {
+            message: {
+              content: '{"detectedLanguage":"en","translations":["ok"]}',
+            },
+          },
+        ],
+      }),
+    };
+  };
+
+  const result = await openaiPrompt.requestTranslations({
+    apiUrl: "https://api.openai.com/v1",
+    apiKey: "test-key",
+    model: "gpt-4o-mini",
+    sourceLanguage: "auto",
+    targetLanguage: "zh-CN",
+    texts: ["hello"],
+    fetchImpl: mockFetch,
+  });
+
+  assert.deepEqual(result.translations, ["ok"]);
+});
+
 test("requestTranslations should throw on HTTP error", async () => {
   const mockFetch = async () => ({
     ok: false,

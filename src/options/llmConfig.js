@@ -20,10 +20,35 @@ const twpLlmConfig = (function () {
     }
   }
 
+  function normalizeApiUrl(value) {
+    const raw = String(value || "").trim();
+    if (!isValidApiUrl(raw)) return raw;
+
+    const url = new URL(raw);
+    let pathname = url.pathname.replace(/\/+$/, "");
+    const host = url.host.toLowerCase();
+
+    if (!pathname || pathname === "") {
+      if (host.includes("api.deepseek.com")) {
+        pathname = "/chat/completions";
+      } else {
+        pathname = "/v1/chat/completions";
+      }
+    } else if (pathname === "/v1") {
+      pathname = "/v1/chat/completions";
+    } else if (!pathname.endsWith("/chat/completions")) {
+      pathname = `${pathname}/chat/completions`;
+    }
+
+    url.pathname = pathname;
+    return url.toString();
+  }
+
   return {
     providerPresets,
     getProviderPreset,
     isValidApiUrl,
+    normalizeApiUrl,
   };
 })();
 

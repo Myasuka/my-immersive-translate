@@ -447,13 +447,14 @@ twpConfig.onReady(function () {
     }
 
     function detectPresetByUrl(url) {
+        const normalized = twpLlmConfig.normalizeApiUrl(url)
         for (const provider in twpLlmConfig.providerPresets) {
-            if (twpLlmConfig.providerPresets[provider] === url) return provider
+            if (twpLlmConfig.providerPresets[provider] === normalized) return provider
         }
         return "custom"
     }
 
-    openaiApiUrl.value = twpConfig.get("openaiApiUrl") || twpLlmConfig.getProviderPreset("openai")
+    openaiApiUrl.value = twpLlmConfig.normalizeApiUrl(twpConfig.get("openaiApiUrl") || twpLlmConfig.getProviderPreset("openai"))
     openaiApiKey.value = twpConfig.get("openaiApiKey") || ""
     openaiModel.value = twpConfig.get("openaiModel") || "gpt-4o-mini"
     openaiPrompt.value = twpConfig.get("openaiPrompt") || ""
@@ -480,9 +481,11 @@ twpConfig.onReady(function () {
             setOpenaiStatus("Invalid API URL", "#b71c1c")
             return
         }
+        const normalizedUrl = twpLlmConfig.normalizeApiUrl(value)
         e.target.setCustomValidity("")
-        twpConfig.set("openaiApiUrl", value)
-        openaiProviderPreset.value = detectPresetByUrl(value)
+        e.target.value = normalizedUrl
+        twpConfig.set("openaiApiUrl", normalizedUrl)
+        openaiProviderPreset.value = detectPresetByUrl(normalizedUrl)
         setOpenaiStatus("API URL saved", "#2e7d32")
     }
 
@@ -534,11 +537,14 @@ twpConfig.onReady(function () {
             setOpenaiStatus("Missing API key", "#b71c1c")
             return
         }
+        const normalizedApiUrl = twpLlmConfig.normalizeApiUrl(apiUrl)
+        openaiApiUrl.value = normalizedApiUrl
+        twpConfig.set("openaiApiUrl", normalizedApiUrl)
 
         setOpenaiStatus("Testing...", "#666")
         testOpenaiConnection.setAttribute("disabled", "")
         try {
-            const response = await fetch(apiUrl, {
+            const response = await fetch(normalizedApiUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
