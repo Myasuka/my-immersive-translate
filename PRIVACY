@@ -3,4 +3,4 @@ The only communication is with Google (translate.google.com and translate.google
 These translation services (Google, Yandex, Bing and DeepL) can collect data to improve their services.
 To translate, all content on the page is sent to Google, Yandex, Bind or DeepL servers.
 For text to speech (tts) the text will be sent to Google.
-The source code is available on <a href="https://github.com/immersive-translate/immersive-translate">Github</a>.
+The source code is available on <a href="https://github.com/Myasuka/my-immersive-translate">Github</a>.

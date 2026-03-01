@@ -11,7 +11,7 @@
 1. Clone this repo:
 
 ```
-git clone https://github.com/immersive-translate/immersive-translate.git
+git clone https://github.com/Myasuka/my-immersive-translate.git
 ```
 
 2. Install Dependencies

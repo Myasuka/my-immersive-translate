@@ -56,9 +56,6 @@
   "btnOpenOnGoogleTranslate": {
     "message": "Open in google translator"
   },
-  "btnDonate": {
-    "message": "Donate"
-  },
   "btnNeverTranslate": {
     "message": "Never translate this site"
   },
@@ -73,9 +70,6 @@
   },
   "btnMobileNeverTranslate": {
     "message": "Never translate this site"
-  },
-  "btnMobileDonate": {
-    "message": "Donate"
   },
   "optionsNeverTranslate": {
     "message": "Never translate these sites"
@@ -100,9 +94,6 @@
   },
   "btnMoreOptions": {
     "message": "More options"
-  },
-  "lblPlsDonate": {
-    "message": "Help the developer with a donation"
   },
   "msgTranslateFor": {
     "message": "Translate to $LANGUAGE_NAME$",
@@ -149,9 +140,6 @@
   "lblAlwaysTranslateSites": {
     "message": "Always translate these sites"
   },
-  "msgDonateWithPaypal": {
-    "message": "Donate with PayPal"
-  },
   "lblDarkMode": {
     "message": "Dark Mode"
   },
@@ -194,9 +182,6 @@
   "msgHotkeys": {
     "message": "Hotkeys"
   },
-  "lblMakeDonation": {
-    "message": "Make a donation"
-  },
   "lblReleaseNotes": {
     "message": "Release Notes"
   },
@@ -217,12 +202,6 @@
   },
   "msgToTranslateSites": {
     "message": "To translate the site"
-  },
-  "msgThanksForUseExtension": {
-    "message": "Thank you for using this extension."
-  },
-  "msgIWillBeGrateful": {
-    "message": "I will be grateful if you can make a donation."
   },
   "btnAlwaysTranslateThisLanguage": {
     "message": "Always translate this language"
@@ -388,9 +367,6 @@
   "calculatestorage": {
     "message": "Calculate"
   },
-  "donatewithpaypal": {
-    "message": "Donate With PayPal"
-  },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Automatically translate when clicking on a link that takes you to the same domain as the current site"
   },
@@ -484,16 +460,16 @@
   "lblHotTranslatedSelectedText": {
     "message": "Replace selected text with translated text instantly"
   },
-  "lblSwitchDual":{
+  "lblSwitchDual": {
     "message": "Show Translations/Show Dual"
   },
-  "msgIsShowDualLanguage":{
+  "msgIsShowDualLanguage": {
     "message": "Show dual language?"
-   },
-  "optionsSpecialRules":{
+  },
+  "optionsSpecialRules": {
     "message": "Special Page Rules"
   },
-  "optionsSpecialRulesNotes":{
-     "message":"This is an advanced option, please make sure you know what you are doing before editing. The priority of the rules added here is higher than that of the <a href=\"https://github.com/immersive-translate/immersive-translate/blob/main/src/lib/specialRules.js\">rules built into the extension</a><br>It's actually not very complicated, it's essentially some css selectors, and here's a <a href=\"https://github.com/immersive-translate/immersive-translate/wiki/Special-Rules-Tutorial\">tutorial </a> to help you.<br>The ultimate goal is to make the default rules for this extension better, so please consider contributing your rules to the <a href=\"https://github.com/immersive-translate/immersive-translate/blob/main/src/lib/specialRules.js\">project</a>"
-   }
+  "optionsSpecialRulesNotes": {
+    "message": "This is an advanced option, please make sure you know what you are doing before editing. The priority of the rules added here is higher than that of the <a href=\"https://github.com/Myasuka/my-immersive-translate/blob/main/src/lib/specialRules.js\">rules built into the extension</a><br>It's actually not very complicated, it's essentially some css selectors, and here's a <a href=\"https://github.com/Myasuka/my-immersive-translate/wiki/Special-Rules-Tutorial\">tutorial </a> to help you.<br>The ultimate goal is to make the default rules for this extension better, so please consider contributing your rules to the <a href=\"https://github.com/Myasuka/my-immersive-translate/blob/main/src/lib/specialRules.js\">project</a>"
+  }
 }

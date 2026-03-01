@@ -86,7 +86,7 @@ jobs:
           prerelease: false
           generate_release_notes: true
           body: |
-            See [Changelog](https://github.com/immersive-translate/immersive-translate/blob/main/CHANGELOG.md) for more details.
+            See [Changelog](https://github.com/Myasuka/my-immersive-translate/blob/main/CHANGELOG.md) for more details.
           files: |
             dist/chrome-immersive_translate-${{ steps.set_var.outputs.version }}.zip
             dist/firefox-immersive_translate-${{ steps.set_var.outputs.version }}.xpi

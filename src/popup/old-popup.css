@@ -36,16 +36,6 @@ button {
     cursor: pointer;
 }
 
-#btnPatreon {
-    margin-top: 6px;
-    border-radius: 50%;
-    padding: 10px;
-    cursor: pointer;
-}
-
-#btnPatreon:hover i, #btnPatreon:hover i::after, #btnPatreon:hover i::before {
-    background-color: tomato;
-}
 
 #divOptionsList {
     position: static;
@@ -147,45 +137,40 @@ option {
     left: -4px
 }
 
+.debug-panel {
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+}
 
-.gg-heart,
-.gg-heart::after {
-    border: 2px solid;
-    border-top-left-radius: 100px;
-    border-top-right-radius: 100px;
-    width: 10px;
-    height: 8px;
-    border-bottom: 0
+.debug-panel-title {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 6px;
 }
-.gg-heart {
-    box-sizing: border-box;
-    position: relative;
-    transform:
-        translate(
-            calc(-10px / 2 * var(--ggs,1)),
-            calc(-6px / 2 * var(--ggs,1))
-        )
-        rotate(-45deg)
-        scale(var(--ggs,1));
-    display: block
+
+.debug-panel-actions {
+    display: flex;
+    gap: 6px;
 }
-.gg-heart::after,
-.gg-heart::before {
-    content: "";
-    display: block;
-    box-sizing: border-box;
-    position: absolute
+
+.debug-summary {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+    white-space: pre-wrap;
 }
-.gg-heart::after {
-    right: -9px;
-    transform: rotate(90deg);
-    top: 5px
+
+.debug-log-text {
+    margin-top: 6px;
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
+    font-family: Menlo, Consolas, monospace;
+    font-size: 11px;
 }
-.gg-heart::before {
-    width: 11px;
-    height: 11px;
-    border-left: 2px solid;
-    border-bottom: 2px solid;
-    left: -2px;
-    top: 3px
+
+#openaiModelRow #inputOpenaiModel {
+    flex: 1;
 }

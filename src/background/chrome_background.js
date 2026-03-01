@@ -7,6 +7,66 @@ function checkedLastError() {
 
 // get mimetype
 var tabToMimeType = {}
+function ensureDebugStore() {
+    if (!globalThis.__IMMERSIVE_TRANSLATE_DEBUG__) {
+        globalThis.__IMMERSIVE_TRANSLATE_DEBUG__ = { logs: [] }
+    }
+    return globalThis.__IMMERSIVE_TRANSLATE_DEBUG__
+}
+
+function appendDebugLog(entry) {
+    try {
+        const store = ensureDebugStore()
+        const logs = store.logs
+        logs.push({
+            time: Date.now(),
+            ...entry
+        })
+        while (logs.length > 400) logs.shift()
+    } catch (e) {
+        console.warn("appendDebugLog failed", e)
+    }
+}
+
+globalThis.__appendImmersiveDebugLog = appendDebugLog
+
+function buildDebugSummary(logs) {
+    const llmLogs = logs.filter(item => item.kind === "llm_request")
+    const pageLogs = logs.filter(item => item.kind === "page_translation")
+    const llmDurationTotal = llmLogs.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+    const pageDurationTotal = pageLogs.reduce((sum, item) => sum + (item.durationMs || 0), 0)
+    const modelStats = {}
+    llmLogs.forEach(item => {
+        const modelName = item.model || "unknown"
+        if (!modelStats[modelName]) {
+            modelStats[modelName] = {
+                requestCount: 0,
+                durationTotalMs: 0,
+                avgDurationMs: 0,
+                lastDurationMs: 0
+            }
+        }
+        modelStats[modelName].requestCount += 1
+        modelStats[modelName].durationTotalMs += item.durationMs || 0
+        modelStats[modelName].lastDurationMs = item.durationMs || 0
+    })
+    Object.keys(modelStats).forEach(modelName => {
+        const stats = modelStats[modelName]
+        stats.avgDurationMs = stats.requestCount > 0 ? Math.round(stats.durationTotalMs / stats.requestCount) : 0
+        delete stats.durationTotalMs
+    })
+
+    return {
+        llmRequestCount: llmLogs.length,
+        llmAvgDurationMs: llmLogs.length > 0 ? Math.round(llmDurationTotal / llmLogs.length) : 0,
+        llmLastDurationMs: llmLogs.length > 0 ? (llmLogs[llmLogs.length - 1].durationMs || 0) : 0,
+        pageTranslationCount: pageLogs.length,
+        pageAvgDurationMs: pageLogs.length > 0 ? Math.round(pageDurationTotal / pageLogs.length) : 0,
+        pageLastDurationMs: pageLogs.length > 0 ? (pageLogs[pageLogs.length - 1].durationMs || 0) : 0,
+        modelStats
+    }
+}
+
 chrome.webRequest.onHeadersReceived.addListener(function(details) {
     if (details.tabId !== -1) {
         let contentTypeHeader = null
@@ -52,10 +112,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.tabs.create({
             url: chrome.runtime.getURL("/options/options.html")
         })
-    } else if (request.action === "openDonationPage") {
-        chrome.tabs.create({
-            url: chrome.runtime.getURL("/options/options.html#donation")
-        })
     } else if (request.action === "detectTabLanguage") {
         if (!sender.tab) {
             // https://github.com/FilipePS/Traduzir-paginas-web/issues/478
@@ -93,6 +149,29 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse(undefined);
           }
         });
+        return true
+    } else if (request.action === "recordLlmDebugLog") {
+        if (request.log) {
+            appendDebugLog(request.log)
+        }
+        sendResponse(true)
+        return true
+    } else if (request.action === "getLlmDebugLogs") {
+        const logs = ensureDebugStore().logs
+        sendResponse({
+            logs,
+            summary: buildDebugSummary(logs)
+        })
+        return true
+    } else if (request.action === "clearLlmDebugLogs") {
+        ensureDebugStore().logs = []
+        sendResponse(true)
+        return true
+    } else if (request.action === "openExtensionLogsPage") {
+        chrome.tabs.create({
+            url: `chrome://extensions/?id=${chrome.runtime.id}`
+        })
+        sendResponse(true)
         return true
     }
 

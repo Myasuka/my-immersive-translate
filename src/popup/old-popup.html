@@ -12,18 +12,6 @@
 
 <body>
     <main>
-        <div class="w3-display-topright">
-            <div style="display: flex;">
-                <div class="w3-hover-light-grey" style="margin-right: 5px;" id="btnPatreon"
-                    title="patreon" data-i18n-title="lblMakeDonation">
-                    <i class="gg-heart" style="scale: 0.85;"></i>
-                </div>
-                <!-- <div class="w3-hover-light-grey" id="btnSwitchInterfaces" -->
-                <!--     title="Switch between the old interface and the new one" data-i18n-title="swapPopup"> -->
-                <!--     <i class="gg-swap"></i> -->
-                <!-- </div> -->
-            </div>
-        </div>
 
         <label id="lblTranslate" class="" style="margin-right: 70px;" data-i18n="lblTranslate">Translate this
             page to?</label>
@@ -47,6 +35,11 @@
                 <option value="yandex">Yandex</option>
             </select>
         </div>
+        <div id="openaiModelRow" style="margin-top: 6px; display: flex; align-items: center; gap: 8px;">
+            <label for="inputOpenaiModel" style="color:#666; font-size: 12px;">Model</label>
+            <input id="inputOpenaiModel" type="text" class="w3-input w3-border w3-round" style="height: 32px; font-size: 12px;" />
+            <button id="btnApplyOpenaiModel" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue">Apply</button>
+        </div>
         <div id="divAlwaysTranslateThisLang">
             <input id="cbAlwaysTranslateThisLang" class="w3-check w3-small" type="checkbox">
             <label id="lblAlwaysTranslateThisLang" for="cbAlwaysTranslateThisLang" class="w3-small"
@@ -68,6 +61,7 @@
                     data-i18n="btnTranslate">Translate</button>
                 <button id="btnRestore" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue"
                     data-i18n="btnRestore">Show original</button>
+                <button id="btnPauseTranslation" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue">Pause</button>
                 <button id="btnTryAgain" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue"
                     data-i18n="btnTryAgain">Try Again</button>
                 <div id="btnOptionsDiv" style="position: relative; margin-left: 5px;">
@@ -85,7 +79,6 @@
                         <option value="translateInExternalSite" data-i18n="btnOpenOnGoogleTranslate">Open in googleold
                             translate</option>
                         <option value="moreOptions" data-i18n="btnMoreOptions">More options</option>
-                        <option value="donate" data-i18n="btnDonate">Donate</option>
                     </select>
                     <div id="btnOptionB"
                         style="display: inline; position: absolute; top: -6px; left: 0; background-color: white"
@@ -95,10 +88,21 @@
                 </div>
             </div>
         </div>
-                <div style="margin-top: 6px;font-size: 0.925em;display:flex;justify-content:space-between;align-items:center;">
+        <div style="margin-top: 6px;font-size: 0.925em;display:flex;justify-content:space-between;align-items:center;">
         <span style="color:#999;">v__IMMERSIVE_TRANSLATE_VERSION__</span>
         <span id="translationEngineStatus" style="color:#999;">Engine: -</span>
-      <a href="#" style="color:#999;" id="moreOptions" data-i18n="msgOpenOptions">Options</a>          </div>
+            <a href="#" style="color:#999;" id="moreOptions" data-i18n="msgOpenOptions">Options</a>
+        </div>
+        <div id="debugPanel" class="debug-panel">
+            <div class="debug-panel-title">Debug Panel</div>
+            <div class="debug-panel-actions">
+                <button id="btnRefreshDebugLogs" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue">Refresh</button>
+                <button id="btnClearDebugLogs" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue">Clear</button>
+                <button id="btnOpenBackgroundLogs" class="w3-btn w3-padding-small w3-border w3-round w3-text-blue">Open Logs</button>
+            </div>
+            <div id="debugSummary" class="debug-summary">No logs yet.</div>
+            <textarea id="debugLogsText" class="debug-log-text" readonly></textarea>
+        </div>
     </main>
 
     <script src="/lib/languages.js"></script>

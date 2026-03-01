@@ -20,10 +20,10 @@
   "lblError": {
     "message": "無法翻譯此頁面"
   },
-  "lblSwitchDual":{
+  "lblSwitchDual": {
     "message": "显示译文/显示双语"
   },
-  "lblTargetLanguageHelp":{
+  "lblTargetLanguageHelp": {
     "message": "設置翻譯後的語言，也就是你的母語"
   },
   "lblAlwaysTranslate": {
@@ -62,9 +62,6 @@
   "btnOpenOnGoogleTranslate": {
     "message": "在Google翻譯中打開"
   },
-  "btnDonate": {
-    "message": "贊助"
-  },
   "btnNeverTranslate": {
     "message": "永遠不要翻譯這個網站"
   },
@@ -79,9 +76,6 @@
   },
   "btnMobileNeverTranslate": {
     "message": "永遠不要翻譯這個網站"
-  },
-  "btnMobileDonate": {
-    "message": "贊助"
   },
   "optionsNeverTranslate": {
     "message": "永遠不要翻譯這些網站"
@@ -106,9 +100,6 @@
   },
   "btnMoreOptions": {
     "message": "更多選項"
-  },
-  "lblPlsDonate": {
-    "message": "贊助開發者"
   },
   "msgTranslateFor": {
     "message": "翻譯至 $LANGUAGE_NAME$",
@@ -155,9 +146,6 @@
   "lblAlwaysTranslateSites": {
     "message": "始終翻譯這些網站"
   },
-  "msgDonateWithPaypal": {
-    "message": "用 PayPal 資助"
-  },
   "lblDarkMode": {
     "message": "黑暗模式"
   },
@@ -200,9 +188,6 @@
   "msgHotkeys": {
     "message": "快捷鍵"
   },
-  "lblMakeDonation": {
-    "message": "捐款"
-  },
   "lblReleaseNotes": {
     "message": "版本資訊"
   },
@@ -223,12 +208,6 @@
   },
   "msgToTranslateSites": {
     "message": "翻譯這個網站"
-  },
-  "msgThanksForUseExtension": {
-    "message": "感謝您使用這個擴充套件"
-  },
-  "msgIWillBeGrateful": {
-    "message": "如果您有能力捐款，我將感激不盡。"
   },
   "btnAlwaysTranslateThisLanguage": {
     "message": "始終翻譯這個語言"
@@ -394,9 +373,6 @@
   "calculatestorage": {
     "message": "計算"
   },
-  "donatewithpaypal": {
-    "message": "透過 PayPal 贊助我"
-  },
   "lblAutoTranslateWhenClickingALink": {
     "message": "當點擊一個帶你到與目前網站相同的域名的連結時，自動進行翻譯"
   },
@@ -490,52 +466,52 @@
   "lblHotTranslatedSelectedText": {
     "message": "立即將所選文字取代為翻譯文字"
   },
-    "msgUnderline":{
+  "msgUnderline": {
     "message": "下劃線"
   },
-  "msgIsShowDualLanguage":{
+  "msgIsShowDualLanguage": {
     "message": "是否同時顯示雙語"
   },
-  "msgDualTranslationStyle":{
+  "msgDualTranslationStyle": {
     "message": "雙語顯示效果主題選項"
   },
-  "msgWeakening":{
+  "msgWeakening": {
     "message": "弱化"
   },
-  "msgHighlight":{
+  "msgHighlight": {
     "message": "高亮"
   },
-  "msgMask":{
+  "msgMask": {
     "message": "模糊，鼠標懸停顯示翻譯"
   },
-  "msgNone":{
+  "msgNone": {
     "message": "不添加額外樣式"
   },
-  "msgCustomTranslationStyle":{
+  "msgCustomTranslationStyle": {
     "message": "自定義雙語顯示CSS樣式（高級,將會覆蓋默認主題）"
   },
-  "msgSave":{
+  "msgSave": {
     "message": "保存"
   },
-  "msgMore":{
+  "msgMore": {
     "message": "更多"
   },
-  "msgOpenOptions":{
+  "msgOpenOptions": {
     "message": "選項設置"
   },
-  "optionsSpecialRules":{
+  "optionsSpecialRules": {
     "message": "特殊頁面翻譯規則"
   },
-  "optionsSpecialRulesNotes":{
-    "message":"這是一個高級選項，請確保你在編輯之前知道自己在做什麼！ 這裡添加的規則的優先級高於內置的<a href=\"https://github.com/immersive-translate/immersive-translate/blob/main/src/lib/specialRules.js\">規則</a><br>別被嚇到，其實也不是很複雜啦，本質上就是一些css選擇器，這裡有一個<a href=\"https://github.com/immersive-translate/immersive-translate/wiki/Special-Rules-Tutorial\">教程</a>來幫助你。<br>我們最終目標是讓這個擴展的默認規則更人性化，所以請考慮將你的規則貢獻給<a href=\"https://github.com/immersive-translate/immersive-translate/blob/main/src/lib/specialRules.js\">本項目</a>。"
+  "optionsSpecialRulesNotes": {
+    "message": "這是一個高級選項，請確保你在編輯之前知道自己在做什麼！ 這裡添加的規則的優先級高於內置的<a href=\"https://github.com/Myasuka/my-immersive-translate/blob/main/src/lib/specialRules.js\">規則</a><br>別被嚇到，其實也不是很複雜啦，本質上就是一些css選擇器，這裡有一個<a href=\"https://github.com/Myasuka/my-immersive-translate/wiki/Special-Rules-Tutorial\">教程</a>來幫助你。<br>我們最終目標是讓這個擴展的默認規則更人性化，所以請考慮將你的規則貢獻給<a href=\"https://github.com/Myasuka/my-immersive-translate/blob/main/src/lib/specialRules.js\">本項目</a>。"
   },
-    "lblTelegram":{
+  "lblTelegram": {
     "message": "加Telegram群"
   },
-"msgCommon":{
-    "message":"常用設置"
+  "msgCommon": {
+    "message": "常用設置"
   },
-    "optionIsTranslateTitle":{
-    "message":"是否翻譯頁面標題?"
+  "optionIsTranslateTitle": {
+    "message": "是否翻譯頁面標題?"
   }
 }

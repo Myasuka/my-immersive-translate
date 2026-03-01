@@ -17,7 +17,7 @@
   "lblTranslated": {
     "message": "已翻译"
   },
-  "lblTranslateButton":{
+  "lblTranslateButton": {
     "message": "翻译"
   },
   "lblError": {
@@ -41,7 +41,7 @@
       }
     }
   },
-  "lblTargetLanguageHelp":{
+  "lblTargetLanguageHelp": {
     "message": "设置翻译后的语言，也就是你的母语"
   },
   "btnReset": {
@@ -62,9 +62,6 @@
   "btnOpenOnGoogleTranslate": {
     "message": "在 Google 翻译中打开"
   },
-  "btnDonate": {
-    "message": "捐助支持"
-  },
   "btnNeverTranslate": {
     "message": "永不翻译此网站"
   },
@@ -79,9 +76,6 @@
   },
   "btnMobileNeverTranslate": {
     "message": "永不翻译此网站"
-  },
-  "btnMobileDonate": {
-    "message": "捐助支持"
   },
   "optionsNeverTranslate": {
     "message": "永不翻译这些网站"
@@ -109,9 +103,6 @@
   },
   "btnMoreOptions": {
     "message": "更多选项"
-  },
-  "lblPlsDonate": {
-    "message": "通过捐款帮助开发者"
   },
   "msgTranslateFor": {
     "message": "翻译为 $LANGUAGE_NAME$",
@@ -158,9 +149,6 @@
   "lblAlwaysTranslateSites": {
     "message": "总是翻译这些网站"
   },
-  "msgDonateWithPaypal": {
-    "message": "PayPal 捐款"
-  },
   "lblDarkMode": {
     "message": "深色模式"
   },
@@ -203,9 +191,6 @@
   "msgHotkeys": {
     "message": "热键"
   },
-  "lblMakeDonation": {
-    "message": "捐助支持"
-  },
   "lblReleaseNotes": {
     "message": "发行说明"
   },
@@ -226,12 +211,6 @@
   },
   "msgToTranslateSites": {
     "message": "翻译该网站"
-  },
-  "msgThanksForUseExtension": {
-    "message": "感谢您使用此扩展。"
-  },
-  "msgIWillBeGrateful": {
-    "message": "若您能够提供捐助，我将不胜感激。"
   },
   "btnAlwaysTranslateThisLanguage": {
     "message": "总是翻译此语言"
@@ -374,7 +353,7 @@
   "lblSwitchTranslatedAndOriginal": {
     "message": "在页面的译文和原文间切换"
   },
-  "lblSwitchDual":{
+  "lblSwitchDual": {
     "message": "显示译文/显示双语"
   },
   "lblRestorePageToOriginal": {
@@ -399,9 +378,6 @@
   },
   "calculatestorage": {
     "message": "计算"
-  },
-  "donatewithpaypal": {
-    "message": "PayPal 捐款"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "若点击链接所访问的网站与当前域名相同，则自动翻译"
@@ -496,52 +472,52 @@
   "lblHotTranslatedSelectedText": {
     "message": "自动替换选中文本为译文"
   },
-  "msgUnderline":{
+  "msgUnderline": {
     "message": "下划线"
   },
-  "msgIsShowDualLanguage":{
+  "msgIsShowDualLanguage": {
     "message": "是否同时显示双语"
   },
-  "msgDualTranslationStyle":{
+  "msgDualTranslationStyle": {
     "message": "双语显示效果主题选项"
   },
-  "msgWeakening":{
+  "msgWeakening": {
     "message": "弱化"
   },
-  "msgHighlight":{
+  "msgHighlight": {
     "message": "高亮"
   },
-  "msgMask":{
+  "msgMask": {
     "message": "模糊，鼠标悬停显示翻译"
   },
-  "msgNone":{
+  "msgNone": {
     "message": "不添加额外样式"
   },
-  "msgCustomTranslationStyle":{
+  "msgCustomTranslationStyle": {
     "message": "自定义双语显示CSS样式（高级,将会覆盖默认主题）"
   },
-  "msgSave":{
+  "msgSave": {
     "message": "保存"
   },
-  "msgMore":{
+  "msgMore": {
     "message": "更多"
   },
-  "msgOpenOptions":{
+  "msgOpenOptions": {
     "message": "选项设置"
   },
-  "optionsSpecialRules":{
+  "optionsSpecialRules": {
     "message": "特殊页面翻译规则"
   },
-  "optionsSpecialRulesNotes":{
-    "message":"这是一个高级选项，请确保你在编辑之前知道自己在做什么！ 这里添加的规则的优先级高于内置的<a href=\"https://github.com/immersive-translate/immersive-translate/blob/main/src/lib/specialRules.js\">规则</a><br>别被吓到，其实也不是很复杂啦，本质上就是一些css选择器，这里有一个<a href=\"https://github.com/immersive-translate/immersive-translate/wiki/Special-Rules-Tutorial\">教程</a>来帮助你。<br>我们最终目标是让这个扩展的默认规则更人性化，所以请考虑将你的规则贡献给<a href=\"https://github.com/immersive-translate/immersive-translate/blob/main/src/lib/specialRules.js\">本项目</a>。"
+  "optionsSpecialRulesNotes": {
+    "message": "这是一个高级选项，请确保你在编辑之前知道自己在做什么！ 这里添加的规则的优先级高于内置的<a href=\"https://github.com/Myasuka/my-immersive-translate/blob/main/src/lib/specialRules.js\">规则</a><br>别被吓到，其实也不是很复杂啦，本质上就是一些css选择器，这里有一个<a href=\"https://github.com/Myasuka/my-immersive-translate/wiki/Special-Rules-Tutorial\">教程</a>来帮助你。<br>我们最终目标是让这个扩展的默认规则更人性化，所以请考虑将你的规则贡献给<a href=\"https://github.com/Myasuka/my-immersive-translate/blob/main/src/lib/specialRules.js\">本项目</a>。"
   },
-  "lblTelegram":{
+  "lblTelegram": {
     "message": "加Telegram群"
   },
-  "msgCommon":{
-    "message":"常用配置"
+  "msgCommon": {
+    "message": "常用配置"
   },
-  "optionIsTranslateTitle":{
-    "message":"是否翻译页面标题？"
+  "optionIsTranslateTitle": {
+    "message": "是否翻译页面标题？"
   }
 }

@@ -24,23 +24,27 @@ twpConfig.onReady(function () {
 
     const selectTargetLanguage = document.getElementById("selectTargetLanguage")
     const selectEngine = document.getElementById("selectEngine")
+    const openaiModelRow = document.getElementById("openaiModelRow")
+    const inputOpenaiModel = document.getElementById("inputOpenaiModel")
+    const btnApplyOpenaiModel = document.getElementById("btnApplyOpenaiModel")
 
     const divOptionsList = document.getElementById("divOptionsList")
 
     const btnReset = document.getElementById("btnReset")
     const btnTranslate = document.getElementById("btnTranslate")
     const btnRestore = document.getElementById("btnRestore")
+    const btnPauseTranslation = document.getElementById("btnPauseTranslation")
     const btnTryAgain = document.getElementById("btnTryAgain")
     const btnOptionsDiv = document.getElementById("btnOptionsDiv")
     const btnOptions = document.getElementById("btnOptions")
-
-    $("#btnPatreon").onclick = e => {
-        window.open("https://www.patreon.com/theowenyoung", "_blank")
-    }
+    const btnRefreshDebugLogs = document.getElementById("btnRefreshDebugLogs")
+    const btnClearDebugLogs = document.getElementById("btnClearDebugLogs")
+    const btnOpenBackgroundLogs = document.getElementById("btnOpenBackgroundLogs")
+    const debugSummary = document.getElementById("debugSummary")
+    const debugLogsText = document.getElementById("debugLogsText")
 
 
     $("#btnOptionB").innerHTML += ' <i class="arrow down"></i>'
-    $("#btnOptions option[value='donate']").innerHTML += " &#10084;";
 
     var cStyle = getComputedStyle(document.querySelector("#btnOptionB"))
     btnOptions.style.width = (parseInt(cStyle.width) + 0) + "px"
@@ -48,6 +52,55 @@ twpConfig.onReady(function () {
     // Avoid outputting the error message "Receiving end does not exist" in the Console.
     function checkedLastError() {
         chrome.runtime.lastError
+    }
+
+    function formatLogLine(item) {
+        const time = item.time ? new Date(item.time).toLocaleTimeString() : "-"
+        const status = item.ok === false ? "ERR" : "OK"
+        if (item.kind === "llm_request") {
+            return `[${time}] [LLM] ${status} ${item.model || "-"} ${item.durationMs || 0}ms (${item.textCount || 0} items)`
+        }
+        if (item.kind === "page_translation_start") {
+            return `[${time}] [PAGE] START ${item.service || "-"} -> ${item.targetLanguage || "-"}`
+        }
+        if (item.kind === "page_translation_error") {
+            return `[${time}] [PAGE] ERROR ${item.durationMs || 0}ms ${item.error || ""}`
+        }
+        if (item.kind === "page_translation") {
+            return `[${time}] [PAGE] DONE ${item.durationMs || 0}ms (${item.piecesCount || 0} pieces)`
+        }
+        return `[${time}] ${JSON.stringify(item)}`
+    }
+
+    function setDebugSummary(summary) {
+        if (!debugSummary) return
+        if (!summary) {
+            debugSummary.textContent = "No logs yet."
+            return
+        }
+        const modelStats = summary.modelStats || {}
+        const modelLines = Object.keys(modelStats)
+            .slice(0, 4)
+            .map(modelName => {
+                const stats = modelStats[modelName]
+                return `${modelName}: ${stats.avgDurationMs || 0}ms (${stats.requestCount || 0} req)`
+            })
+        const modelText = modelLines.length > 0 ? `\n${modelLines.join("\n")}` : ""
+        debugSummary.textContent = `LLM avg: ${summary.llmAvgDurationMs || 0}ms (${summary.llmRequestCount || 0} req) | Page avg: ${summary.pageAvgDurationMs || 0}ms (${summary.pageTranslationCount || 0} runs)${modelText}`
+    }
+
+    function refreshDebugLogs() {
+        chrome.runtime.sendMessage({
+            action: "getLlmDebugLogs"
+        }, result => {
+            checkedLastError()
+            const logs = result && result.logs ? result.logs : []
+            const latest = logs.slice(-80).reverse()
+            if (debugLogsText) {
+                debugLogsText.value = latest.map(formatLogLine).join("\n")
+            }
+            setDebugSummary(result ? result.summary : null)
+        })
     }
 
     // fill language list
@@ -89,6 +142,9 @@ twpConfig.onReady(function () {
         })
     }
     selectTargetLanguage.value = twpConfig.get("targetLanguages")[0]
+    if (inputOpenaiModel) {
+        inputOpenaiModel.value = twpConfig.get("openaiModel") || ""
+    }
 
 
     function enableDarkMode() {
@@ -140,6 +196,7 @@ twpConfig.onReady(function () {
     let currentPageLanguage = "und"
     let currentPageLanguageState = "original"
     let currentPageTranslatorService = twpConfig.get("pageTranslatorService")
+    let isTranslationPaused = false
 
     chrome.tabs.query({
         active: true,
@@ -191,6 +248,16 @@ twpConfig.onReady(function () {
                 updateInterface()
             }
         })
+
+        chrome.tabs.sendMessage(tabs[0].id, {
+            action: "getTranslationPauseState"
+        }, {
+            frameId: 0
+        }, paused => {
+            checkedLastError()
+            isTranslationPaused = paused === true
+            updateInterface()
+        })
     })
 
     let showSelectTargetLanguage = false
@@ -208,10 +275,19 @@ twpConfig.onReady(function () {
         }
         if ($("#translationEngineStatus")) {
             const engineLabel = chrome.i18n.getMessage("lblEngine") || "Engine"
-            $("#translationEngineStatus").textContent = `${engineLabel}: ${currentPageTranslatorService}`
+            const currentModel = twpConfig.get("openaiModel") || "-"
+            $("#translationEngineStatus").textContent = currentPageTranslatorService === "openai"
+                ? `${engineLabel}: ${currentPageTranslatorService} (${currentModel})`
+                : `${engineLabel}: ${currentPageTranslatorService}`
         }
         if (selectEngine) {
             selectEngine.value = currentPageTranslatorService
+        }
+        if (openaiModelRow) {
+            openaiModelRow.style.display = currentPageTranslatorService === "openai" ? "flex" : "none"
+        }
+        if (inputOpenaiModel && currentPageTranslatorService === "openai") {
+            inputOpenaiModel.value = twpConfig.get("openaiModel") || ""
         }
 
         let showAlwaysTranslateCheckbox = false
@@ -250,6 +326,7 @@ twpConfig.onReady(function () {
             divAlwaysTranslate.style.display = "none"
             btnTranslate.style.display = "inline"
             btnRestore.style.display = "none"
+            btnPauseTranslation.style.display = "none"
             btnTryAgain.style.display = "none"
             btnOptionsDiv.style.display = "none"
         } else {
@@ -267,6 +344,8 @@ twpConfig.onReady(function () {
 
                     btnTranslate.style.display = "none"
                     btnRestore.style.display = "inline"
+                    btnPauseTranslation.style.display = "inline"
+                    btnPauseTranslation.textContent = isTranslationPaused ? "Resume" : "Pause"
                     btnTryAgain.style.display = "none"
                     btnOptionsDiv.style.display = "inline"
                     break;
@@ -279,6 +358,8 @@ twpConfig.onReady(function () {
 
                     btnTranslate.style.display = "none"
                     btnRestore.style.display = "inline"
+                    btnPauseTranslation.style.display = "inline"
+                    btnPauseTranslation.textContent = isTranslationPaused ? "Resume" : "Pause"
                     btnTryAgain.style.display = "none"
                     btnOptionsDiv.style.display = "none"
 
@@ -295,6 +376,7 @@ twpConfig.onReady(function () {
                     // divAlwaysTranslate.style.display = "none"
                     btnTranslate.style.display = "none"
                     btnRestore.style.display = "none"
+                    btnPauseTranslation.style.display = "none"
                     btnTryAgain.style.display = "inline"
                     btnOptionsDiv.style.display = "none"
 
@@ -309,6 +391,7 @@ twpConfig.onReady(function () {
                     showAlwaysTranslateCheckbox ? divAlwaysTranslate.style.display = "block" : divAlwaysTranslate.style.display = "none";
                     btnTranslate.style.display = "inline"
                     btnRestore.style.display = "none"
+                    btnPauseTranslation.style.display = "none"
                     btnTryAgain.style.display = "none"
                     btnOptionsDiv.style.display = "inline"
 
@@ -318,6 +401,7 @@ twpConfig.onReady(function () {
         }
     }
     updateInterface()
+    refreshDebugLogs()
 
     $("#btnTranslate").onclick = e => {
         currentPageLanguageState = "translated"
@@ -343,6 +427,7 @@ twpConfig.onReady(function () {
 
     $("#btnRestore").onclick = e => {
         currentPageLanguageState = "original"
+        isTranslationPaused = false
 
         chrome.tabs.query({
             active: true,
@@ -354,6 +439,23 @@ twpConfig.onReady(function () {
         })
 
         updateInterface()
+        refreshDebugLogs()
+    }
+
+    if (btnPauseTranslation) {
+        btnPauseTranslation.onclick = () => {
+            chrome.tabs.query({
+                active: true,
+                currentWindow: true
+            }, tabs => {
+                const action = isTranslationPaused ? "resumeTranslation" : "pauseTranslation"
+                chrome.tabs.sendMessage(tabs[0].id, {
+                    action
+                }, checkedLastError)
+            })
+            isTranslationPaused = !isTranslationPaused
+            updateInterface()
+        }
     }
     $("#moreOptions").onclick = e => {
       chrome.tabs.create({
@@ -389,6 +491,48 @@ twpConfig.onReady(function () {
                 }
             })
             updateInterface()
+            refreshDebugLogs()
+        }
+    }
+
+    if (btnApplyOpenaiModel && inputOpenaiModel) {
+        btnApplyOpenaiModel.onclick = () => {
+            const modelName = inputOpenaiModel.value.trim()
+            if (!modelName) return
+            twpConfig.set("openaiModel", modelName)
+            chrome.tabs.query({
+                active: true,
+                currentWindow: true
+            }, tabs => {
+                if (currentPageLanguageState === "translated" && currentPageTranslatorService === "openai") {
+                    chrome.tabs.sendMessage(tabs[0].id, {
+                        action: "translatePage",
+                        targetLanguage: selectTargetLanguage.value
+                    }, checkedLastError)
+                }
+            })
+            updateInterface()
+        }
+    }
+
+    if (btnRefreshDebugLogs) {
+        btnRefreshDebugLogs.onclick = refreshDebugLogs
+    }
+    if (btnClearDebugLogs) {
+        btnClearDebugLogs.onclick = () => {
+            chrome.runtime.sendMessage({
+                action: "clearLlmDebugLogs"
+            }, () => {
+                checkedLastError()
+                refreshDebugLogs()
+            })
+        }
+    }
+    if (btnOpenBackgroundLogs) {
+        btnOpenBackgroundLogs.onclick = () => {
+            chrome.runtime.sendMessage({
+                action: "openExtensionLogsPage"
+            }, checkedLastError)
         }
     }
 
@@ -474,11 +618,6 @@ twpConfig.onReady(function () {
                 case "moreOptions":
                     chrome.tabs.create({
                         url: chrome.runtime.getURL("/options/options.html")
-                    })
-                    break
-                case "donate":
-                    chrome.tabs.create({
-                        url: chrome.runtime.getURL("/options/options.html#donation")
                     })
                     break
                 default:
