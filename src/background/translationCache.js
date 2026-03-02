@@ -725,3 +725,5 @@ const translationCache = (function () {
 
   return translationCache;
 })();
+
+export { translationCache };

@@ -1,5 +1,23 @@
 # ChangeLog
 
+## 0.2.0
+
+- 将构建系统从 gulp 迁移至 WXT 框架（Vite-based），支持热重载开发
+- 移除 Firefox/MV2 支持，专注 Chrome MV3
+- 自动化 manifest 生成，替代手动维护双 manifest 文件
+- 构建产物目录：`dist/` → `.output/chrome-mv3/`
+- 开发命令：`npm run dev`（热重载），`npm run build`，`npm run zip`
+
+## 0.1.0
+
+- feat: 新增 OpenAI-compatible API 翻译引擎（支持 ChatGPT、DeepSeek 等兼容服务）
+- feat: 新增 LLM 调试日志（timing、batching 统计），可通过 `globalThis.__IMMERSIVE_TRANSLATE_DEBUG__` 开启
+- fix: 规范化 OpenAI API URL，自动补全 `/v1/chat/completions` 路径
+- feat: 翻译引擎标签国际化支持
+- perf: 增大 LLM 批量请求大小，减少 API 调用次数
+- docs: 新增架构设计文档和用户指南
+- chore: 清理仓库链接，移除赞助相关内容
+
 ## 0.0.41
 
 - Support start.me

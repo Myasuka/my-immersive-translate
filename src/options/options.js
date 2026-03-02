@@ -1,5 +1,9 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { twpLang } from "../lib/languages.js";
+import { twpLlmConfig } from "./llmConfig.js";
+
 var $ = document.querySelector.bind(document)
 
 twpConfig.onReady(function () {

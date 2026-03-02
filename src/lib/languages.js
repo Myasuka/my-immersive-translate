@@ -5308,3 +5308,5 @@ const twpLang = (function () {
 
   return twpLang;
 })();
+
+export { twpLang };

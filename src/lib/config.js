@@ -544,3 +544,5 @@ const twpConfig = (function () {
 
   return twpConfig;
 })();
+
+export { twpConfig };

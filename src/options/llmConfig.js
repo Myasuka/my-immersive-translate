@@ -55,3 +55,5 @@ const twpLlmConfig = (function () {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = twpLlmConfig;
 }
+
+export { twpLlmConfig };

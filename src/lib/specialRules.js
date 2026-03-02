@@ -15,7 +15,8 @@ const specialRules = [
       "[data-testid='developerBuiltCardContainer'] > div:nth-child(2)",
       "[data-testid='card.layoutLarge.detail'] > div:nth-child(2)",
     ],
-    "detectLanguage":true
+    "detectLanguage":true,
+    "style":"none"
 
   },
   {
@@ -411,3 +412,5 @@ const specialRules = [
     "selectors":[".contenttable .content","h3.title"]
   }
 ]
+
+export { specialRules };

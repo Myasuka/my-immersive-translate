@@ -54,7 +54,9 @@ function loadConfigContext() {
 
   vm.createContext(context);
   const configPath = path.join(__dirname, "..", "src", "lib", "config.js");
-  const source = readFileSync(configPath, "utf8");
+  const source = readFileSync(configPath, "utf8")
+    .replace(/^export\s*\{[^}]*\};?\s*$/gm, "")
+    .replace(/^import\s[^;]+;?\s*$/gm, "");
   vm.runInContext(`${source}\n;globalThis.__twpConfig = twpConfig;`, context);
 
   return { twpConfig: context.__twpConfig, writes, listeners };

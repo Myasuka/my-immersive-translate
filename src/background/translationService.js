@@ -1,5 +1,10 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { twpLang } from "../lib/languages.js";
+import { translationCache } from "./translationCache.js";
+import { openaiPrompt } from "./openaiPrompt.js";
+
 const translationService = (function () {
   const translationService = {};
 
@@ -1296,3 +1301,5 @@ const translationService = (function () {
 
   return translationService;
 })();
+
+export { translationService };

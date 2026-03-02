@@ -1,3 +1,7 @@
+import { twpConfig } from "../lib/config.js";
+import { specialRules } from "../lib/specialRules.js";
+import { platformInfo } from "../lib/platformInfo.js";
+
 const enhanceMarkAttributeName = "data-translationmark";
 
 const enhanceOriginalDisplayValueAttributeName = "data-translationoriginaldisplay";
@@ -262,7 +266,13 @@ async function getNodesThatNeedToTranslate(root,ctx,options){
       if(root && root.querySelectorAll){
         const nodes = root.querySelectorAll(selector);
         for(const node of nodes){
-          if(currentHostname==="twitter.com" || currentHostname==="twitterdesk.twitter.com" || currentHostname==="mobile.twitter.com"){
+          if (
+            currentHostname === "twitter.com" ||
+            currentHostname === "tweetdeck.twitter.com" ||
+            currentHostname === "mobile.twitter.com" ||
+            currentHostname === "x.com" ||
+            currentHostname === "www.x.com"
+          ) {
             // check language
             try{
               const lang = node.getAttribute("lang");

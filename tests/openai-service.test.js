@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const openaiPrompt = require("../src/background/openaiPrompt.js");
+const { openaiPrompt } = require("../src/background/openaiPrompt.js");
 
 test("buildMessages should include target language and text list", () => {
   const messages = openaiPrompt.buildMessages({

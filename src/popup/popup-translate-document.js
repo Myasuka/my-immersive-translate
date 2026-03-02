@@ -1,3 +1,5 @@
+import { twpConfig } from "../lib/config.js";
+
 const send = document.getElementById("send")
 const error = document.getElementById("error")
 const selectService = document.getElementById("selectService")

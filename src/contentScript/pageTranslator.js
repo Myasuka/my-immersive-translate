@@ -1,5 +1,10 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { twpLang } from "../lib/languages.js";
+import { specialRules } from "../lib/specialRules.js";
+import { platformInfo } from "../lib/platformInfo.js";
+
 /**
  * This mark cannot contain words, like <customskipword>12</customskipword>34
  *
@@ -281,23 +286,91 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
 
     let nodesToRestore = []
     let translationProgressElement = null
+    let translationProgressLabel = null
+    let translationProgressBar = null
     let floatingTranslateButton = null
+    let currentTranslationStartedAt = 0
+    let currentTranslationFoo = 0
+    let currentTranslationReported = false
+    let isTranslationPaused = false
+    const translationTextCache = new Map()
+    const MAX_TRANSLATION_CACHE_SIZE = 2000
+
+    function buildTranslationCacheKey(translationService, targetLanguage, text) {
+        return `${translationService}::${targetLanguage}::${String(text || "")}`
+    }
+
+    function getTranslationCache(translationService, targetLanguage, text) {
+        const key = buildTranslationCacheKey(translationService, targetLanguage, text)
+        return translationTextCache.get(key)
+    }
+
+    function setTranslationCache(translationService, targetLanguage, text, translated) {
+        const key = buildTranslationCacheKey(translationService, targetLanguage, text)
+        translationTextCache.set(key, String(translated || ""))
+        while (translationTextCache.size > MAX_TRANSLATION_CACHE_SIZE) {
+            const oldestKey = translationTextCache.keys().next().value
+            translationTextCache.delete(oldestKey)
+        }
+    }
+
+    function getCachedPieceResult(piece, translationService, targetLanguage) {
+        const result = []
+        for (const node of piece.nodes) {
+            const originalText = node.textContent
+            const cached = getTranslationCache(translationService, targetLanguage, originalText)
+            if (cached === undefined) {
+                return null
+            }
+            result.push(cached)
+        }
+        return result
+    }
+
+    function recordDebugLog(log) {
+        try {
+            const kind = log.kind || "page_translation"
+            chrome.runtime.sendMessage({
+                action: "recordLlmDebugLog",
+                log: {
+                    kind,
+                    url: location.href,
+                    ...log
+                }
+            })
+        } catch (e) {}
+    }
 
     function ensureTranslationProgressElement() {
         if (window.top !== window) return null
         if (!translationProgressElement) {
             translationProgressElement = document.createElement("div")
             translationProgressElement.id = "immersive-translate-progress"
-            translationProgressElement.setAttribute("style", "position:fixed;top:12px;right:12px;z-index:2147483647;background:#1976d2;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.2);")
+            translationProgressElement.setAttribute("style", "position:fixed;top:12px;right:12px;z-index:2147483647;background:#1976d2;color:#fff;padding:8px 10px;border-radius:8px;font-size:12px;display:none;box-shadow:0 2px 8px rgba(0,0,0,.2);min-width:220px;")
+            translationProgressLabel = document.createElement("div")
+            translationProgressLabel.setAttribute("style", "margin-bottom:6px;")
+            translationProgressElement.appendChild(translationProgressLabel)
+            const progressTrack = document.createElement("div")
+            progressTrack.setAttribute("style", "height:6px;background:rgba(255,255,255,.35);border-radius:999px;overflow:hidden;")
+            translationProgressBar = document.createElement("div")
+            translationProgressBar.setAttribute("style", "height:100%;width:0%;background:#fff;transition:width .2s ease;")
+            progressTrack.appendChild(translationProgressBar)
+            translationProgressElement.appendChild(progressTrack)
             document.documentElement.appendChild(translationProgressElement)
         }
         return translationProgressElement
     }
 
-    function showTranslationProgress(text) {
+    function showTranslationProgress(text, percent) {
         const el = ensureTranslationProgressElement()
         if (!el) return
-        el.textContent = text
+        if (translationProgressLabel) {
+            translationProgressLabel.textContent = text
+        }
+        if (translationProgressBar) {
+            const width = typeof percent === "number" ? Math.min(100, Math.max(0, percent)) : 0
+            translationProgressBar.style.width = `${width}%`
+        }
         el.style.display = "block"
     }
 
@@ -313,7 +386,10 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
         floatingTranslateButton.id = "immersive-translate-floating-button"
         floatingTranslateButton.setAttribute("style", "position:fixed;right:16px;bottom:16px;z-index:2147483647;background:#1976d2;color:#fff;border:0;border-radius:999px;padding:8px 12px;font-size:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);")
         floatingTranslateButton.onclick = () => {
-            if (pageLanguageState === "translated") {
+            if (isTranslationPaused) {
+                isTranslationPaused = false
+                updateFloatingTranslateButton()
+            } else if (pageLanguageState === "translated") {
                 pageTranslator.restorePage()
             } else {
                 pageTranslator.translatePage()
@@ -324,7 +400,10 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
 
     function updateFloatingTranslateButton() {
         if (!floatingTranslateButton) return
-        if (pageLanguageState === "translating") {
+        if (isTranslationPaused) {
+            floatingTranslateButton.textContent = "Resume"
+            floatingTranslateButton.disabled = false
+        } else if (pageLanguageState === "translating") {
             floatingTranslateButton.textContent = "Translating..."
             floatingTranslateButton.disabled = true
         } else if (pageLanguageState === "translated") {
@@ -724,6 +803,7 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                 for (let j = 0; j < results[i].length; j++) {
                     if (piecesToTranslateNow[i].nodes[j]) {
                         const nodes = piecesToTranslateNow[i].nodes
+                        const originalText = nodes[j].textContent
                         let translated = results[i][j] + " "
                         // In some case, results items count is over original node count
                         // Rest results append to last node
@@ -737,11 +817,12 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                         showOriginal.add(nodes[j])
                         nodesToRestore.push({
                             node: nodes[j],
-                            original: nodes[j].textContent
+                            original: originalText
                         })
 
-                       const result = await handleCustomWords(translated, nodes[j].textContent, currentPageTranslatorService, currentTargetLanguage);
-                            nodes[j].textContent = result
+                       const result = await handleCustomWords(translated, originalText, currentPageTranslatorService, currentTargetLanguage);
+                             nodes[j].textContent = result
+                             setTranslationCache(currentPageTranslatorService, currentTargetLanguage, originalText, result)
                     }
                 }
             }
@@ -750,6 +831,7 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                 for (const j in piecesToTranslateNow[i].nodes) {
                     if (results[i][j]) {
                         const nodes = piecesToTranslateNow[i].nodes
+                        const originalText = nodes[j].textContent
                         const translated = results[i][j] + " "
 
                         nodes[j] = encapsulateTextNode(nodes[j],ctx)
@@ -757,11 +839,12 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                         showOriginal.add(nodes[j])
                         nodesToRestore.push({
                             node: nodes[j],
-                            original: nodes[j].textContent
+                            original: originalText
                         })
 
-                      const result =  await handleCustomWords(translated, nodes[j].textContent, currentPageTranslatorService, currentTargetLanguage);
+                      const result =  await handleCustomWords(translated, originalText, currentPageTranslatorService, currentTargetLanguage);
                       nodes[j].textContent = result
+                      setTranslationCache(currentPageTranslatorService, currentTargetLanguage, originalText, result)
                         
                     }
                 }
@@ -774,11 +857,17 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
         for (const i in attributesToTranslateNow) {
             const ati = attributesToTranslateNow[i]
             ati.node.setAttribute(ati.attrName, results[i])
+            setTranslationCache(currentPageTranslatorService, currentTargetLanguage, ati.original, results[i])
         }
     }
 
     async function translateDynamically() {
         try {
+            if (isTranslationPaused) {
+                showTranslationProgress("Translation paused", 0)
+                setTimeout(translateDynamically, 600)
+                return
+            }
             if (piecesToTranslate && pageIsVisible) {
                 ;
                 await (async function () {
@@ -839,14 +928,34 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                     })
 
                     if (piecesToTranslateNow.length > 0) {
+                        const cachedPieces = []
+                        const piecesToRequest = []
+                        piecesToTranslateNow.forEach(ptt => {
+                            const cached = getCachedPieceResult(ptt, currentPageTranslatorService, currentTargetLanguage)
+                            if (cached) {
+                                cachedPieces.push({ ptt, cached })
+                            } else {
+                                piecesToRequest.push(ptt)
+                            }
+                        })
+
+                        if (cachedPieces.length > 0) {
+                            await translateResults(
+                                cachedPieces.map(item => item.ptt),
+                                cachedPieces.map(item => item.cached),
+                                ctx
+                            )
+                        }
+
+                        if (piecesToRequest.length > 0) {
                         const results = await backgroundTranslateHTML(
                                 currentPageTranslatorService,
                                 currentTargetLanguage,
-                                piecesToTranslateNow.map(ptt => ptt.nodes.map(node => filterKeywordsInText(node.textContent))),
+                                piecesToRequest.map(ptt => ptt.nodes.map(node => filterKeywordsInText(node.textContent))),
                                 dontSortResults
                             )
                             if (pageLanguageState === "translated" && currentFooCount === fooCount) {
-                                 await translateResults(piecesToTranslateNow, results,ctx)
+                                 await translateResults(piecesToRequest, results,ctx)
                                  // changed here
                                  const isShowDualLanguage = twpConfig.get("isShowDualLanguage")==='no'?false:true;
 
@@ -854,36 +963,82 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
                                     showCopyiedNodes()
                                  }
                             }
+                        }
                     }
 
                     if (attributesToTranslateNow.length > 0) {
+                        const cachedAttributes = []
+                        const attributesToRequest = []
+                        attributesToTranslateNow.forEach(ati => {
+                            const cached = getTranslationCache(currentPageTranslatorService, currentTargetLanguage, ati.original)
+                            if (cached !== undefined) {
+                                cachedAttributes.push({ ati, cached })
+                            } else {
+                                attributesToRequest.push(ati)
+                            }
+                        })
+
+                        if (cachedAttributes.length > 0) {
+                            translateAttributes(
+                                cachedAttributes.map(item => item.ati),
+                                cachedAttributes.map(item => item.cached)
+                            )
+                        }
+
+                        if (attributesToRequest.length > 0) {
                         backgroundTranslateText(
                                 currentPageTranslatorService,
                                 currentTargetLanguage,
-                                attributesToTranslateNow.map(ati => ati.original)
+                                attributesToRequest.map(ati => ati.original)
                             )
                             .then(results => {
                                 if (pageLanguageState === "translated" && currentFooCount === fooCount) {
-                                    translateAttributes(attributesToTranslateNow, results)
+                                    translateAttributes(attributesToRequest, results)
                                 }
                             })
+                        }
                     }
                     if (pageLanguageState === "translated" && currentFooCount === fooCount) {
-                        const remainingPieces = piecesToTranslate.filter(item => !item.isTranslated).length
-                        const remainingAttrs = attributesToTranslate.filter(item => !item.isTranslated).length
-                        const remainingTotal = remainingPieces + remainingAttrs
+                        const totalPieces = piecesToTranslate.length
+                        const totalAttrs = attributesToTranslate.length
+                        const translatedPieces = piecesToTranslate.filter(item => item.isTranslated).length
+                        const translatedAttrs = attributesToTranslate.filter(item => item.isTranslated).length
+                        const totalCount = totalPieces + totalAttrs
+                        const translatedCount = translatedPieces + translatedAttrs
+                        const remainingTotal = Math.max(0, totalCount - translatedCount)
+                        const percent = totalCount > 0 ? Math.round((translatedCount / totalCount) * 100) : 0
                         if (remainingTotal > 0) {
-                            showTranslationProgress(`Translating... ${remainingTotal} left`)
+                            showTranslationProgress(`Translating... ${translatedCount}/${totalCount} (${percent}%)`, percent)
                         } else {
-                            showTranslationProgress("Translation complete")
+                            showTranslationProgress("Translation complete", 100)
                             setTimeout(hideTranslationProgress, 1200)
+                            if (!currentTranslationReported && currentTranslationFoo === currentFooCount) {
+                                currentTranslationReported = true
+                                recordDebugLog({
+                                    service: currentPageTranslatorService,
+                                    targetLanguage: currentTargetLanguage,
+                                    durationMs: Math.max(0, Date.now() - currentTranslationStartedAt),
+                                    piecesCount: piecesToTranslate.length,
+                                    attributesCount: attributesToTranslate.length
+                                })
+                            }
                         }
                     }
                 })()
             }
         } catch (e) {
             console.error(e)
-            showTranslationProgress("Translation error")
+            showTranslationProgress("Translation error", 0)
+            if (!currentTranslationReported && currentTranslationFoo === fooCount) {
+                currentTranslationReported = true
+                recordDebugLog({
+                    kind: "page_translation_error",
+                    service: currentPageTranslatorService,
+                    targetLanguage: currentTargetLanguage,
+                    durationMs: Math.max(0, Date.now() - currentTranslationStartedAt),
+                    error: String(e)
+                })
+            }
         }
         setTimeout(translateDynamically, 600)
     }
@@ -919,9 +1074,19 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     pageTranslator.translatePage = async function (targetLanguage) {
         fooCount++
         pageTranslator.restorePage()
+        currentTranslationStartedAt = Date.now()
+        currentTranslationFoo = fooCount
+        currentTranslationReported = false
+        isTranslationPaused = false
+        recordDebugLog({
+            kind: "page_translation_start",
+            event: "start",
+            service: currentPageTranslatorService,
+            targetLanguage: targetLanguage || currentTargetLanguage
+        })
         showOriginal.enable()
         pageLanguageState = "translating"
-        showTranslationProgress("Preparing translation...")
+        showTranslationProgress("Preparing translation...", 0)
         chrome.runtime.sendMessage({
             action: "setPageLanguageState",
             pageLanguageState
@@ -968,6 +1133,7 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
     pageTranslator.restorePage = function () {
         fooCount++
         piecesToTranslate = []
+        isTranslationPaused = false
         hideTranslationProgress()
 
         showOriginal.disable()
@@ -1046,6 +1212,17 @@ Promise.all([twpConfig.onReady(), getTabUrl()])
             sendResponse(currentPageTranslatorService)
         } else if (request.action === "swapTranslationService") {
             pageTranslator.swapTranslationService()
+        } else if (request.action === "pauseTranslation") {
+            isTranslationPaused = true
+            updateFloatingTranslateButton()
+            showTranslationProgress("Translation paused", 0)
+            sendResponse(true)
+        } else if (request.action === "resumeTranslation") {
+            isTranslationPaused = false
+            updateFloatingTranslateButton()
+            sendResponse(true)
+        } else if (request.action === "getTranslationPauseState") {
+            sendResponse(isTranslationPaused)
         } else if (request.action === "toggle-translation") {
 
             if (pageLanguageState === "translated") {

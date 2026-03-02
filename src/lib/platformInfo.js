@@ -1,5 +1,7 @@
 "use strict";
 
+import { twpConfig } from "./config.js";
+
 const platformInfo = {};
 
 twpConfig.onReady(function () {
@@ -33,3 +35,5 @@ twpConfig.onReady(function () {
     any: !platformInfo.isMobile.any,
   };
 });
+
+export { platformInfo };

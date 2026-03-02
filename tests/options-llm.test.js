@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const twpLlmConfig = require("../src/options/llmConfig.js");
+const { twpLlmConfig } = require("../src/options/llmConfig.js");
 
 test("provider presets should return expected URLs", () => {
   assert.equal(

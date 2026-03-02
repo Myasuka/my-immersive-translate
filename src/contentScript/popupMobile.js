@@ -1,5 +1,8 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { platformInfo } from "../lib/platformInfo.js";
+
 var popupMobile = {}
 
 function getTabHostName() {
@@ -298,7 +301,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()])
             chrome.runtime.sendMessage({
                 action: "openOptionsPage"
             })
-        })
+        }
 
         document.addEventListener("blur", hideMenu)
         document.addEventListener("click", hideMenu)

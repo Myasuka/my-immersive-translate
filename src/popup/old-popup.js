@@ -1,5 +1,8 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { twpLang } from "../lib/languages.js";
+
 var $ = document.querySelector.bind(document)
 
 twpConfig.onReady(function () {
@@ -459,7 +462,7 @@ twpConfig.onReady(function () {
     }
     $("#moreOptions").onclick = e => {
       chrome.tabs.create({
-          url: chrome.runtime.getURL("/options/options.html")
+          url: chrome.runtime.getURL("/options/index.html")
       })
       window.close()
     }
@@ -617,7 +620,7 @@ twpConfig.onReady(function () {
                     break
                 case "moreOptions":
                     chrome.tabs.create({
-                        url: chrome.runtime.getURL("/options/options.html")
+                        url: chrome.runtime.getURL("/options/index.html")
                     })
                     break
                 default:

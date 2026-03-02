@@ -114,6 +114,24 @@ const openaiPrompt = (function () {
     return url.toString();
   }
 
+  function appendDebugLog(entry) {
+    try {
+      if (typeof globalThis.__appendImmersiveDebugLog === "function") {
+        globalThis.__appendImmersiveDebugLog(entry);
+        return;
+      }
+      if (!globalThis.__IMMERSIVE_TRANSLATE_DEBUG__) {
+        globalThis.__IMMERSIVE_TRANSLATE_DEBUG__ = { logs: [] };
+      }
+      const logs = globalThis.__IMMERSIVE_TRANSLATE_DEBUG__.logs;
+      logs.push({
+        time: Date.now(),
+        ...entry,
+      });
+      while (logs.length > 400) logs.shift();
+    } catch (e) {}
+  }
+
   async function requestTranslations({
     apiUrl,
     apiKey,
@@ -158,6 +176,17 @@ const openaiPrompt = (function () {
 
     if (!response.ok) {
       const errorBody = response.text ? await response.text() : "";
+      appendDebugLog({
+        kind: "llm_request",
+        ok: false,
+        url: normalizedApiUrl,
+        model,
+        textCount: texts.length,
+        targetLanguage,
+        durationMs: Date.now() - startedAt,
+        status: response.status,
+        statusText: response.statusText,
+      });
       console.warn("[Immersive Translate][LLM] request failed", {
         url: normalizedApiUrl,
         model,
@@ -174,6 +203,17 @@ const openaiPrompt = (function () {
 
     const data = await response.json();
     const parsed = parseOpenAIResponse(data, texts.length);
+    appendDebugLog({
+      kind: "llm_request",
+      ok: true,
+      url: normalizedApiUrl,
+      model,
+      textCount: texts.length,
+      targetLanguage,
+      durationMs: Date.now() - startedAt,
+      status: response.status,
+      statusText: response.statusText,
+    });
     console.info("[Immersive Translate][LLM] request ok", {
       url: normalizedApiUrl,
       model,
@@ -207,3 +247,5 @@ const openaiPrompt = (function () {
 if (typeof module !== "undefined" && module.exports) {
   module.exports = openaiPrompt;
 }
+
+export { openaiPrompt };

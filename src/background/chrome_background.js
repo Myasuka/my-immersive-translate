@@ -1,5 +1,12 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { twpLang } from "../lib/languages.js";
+import { platformInfo } from "../lib/platformInfo.js";
+import { globalIsPdf } from "../lib/util.js";
+import { translationCache } from "./translationCache.js";
+import { translationService } from "./translationService.js";
+
 // Avoid outputting the error message "Receiving end does not exist" in the Console.
 function checkedLastError() {
     chrome.runtime.lastError
@@ -110,7 +117,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         updateContextMenu(request.pageLanguageState)
     } else if (request.action === "openOptionsPage") {
         chrome.tabs.create({
-            url: chrome.runtime.getURL("/options/options.html")
+            url: chrome.runtime.getURL("/options/index.html")
         })
     } else if (request.action === "detectTabLanguage") {
         if (!sender.tab) {
@@ -202,7 +209,7 @@ function updateContextMenu(pageLanguageState = "original") {
 chrome.runtime.onInstalled.addListener(details => {
     if (details.reason == "install") {
         chrome.tabs.create({
-            url: chrome.runtime.getURL("/options/options.html")
+            url: chrome.runtime.getURL("/options/index.html")
         })
     } else if (details.reason == "update" && chrome.runtime.getManifest().version != details.previousVersion) {
         twpConfig.onReady(async () => {
@@ -241,7 +248,7 @@ function resetPageAction(tabId, forceShow = false) {
         })
     } else {
             chrome.action.setPopup({
-                popup: "popup/old-popup.html",
+                popup: "old-popup/index.html",
                 tabId
             })
     }
@@ -254,7 +261,7 @@ function resetBrowserAction(forceShow = false) {
         })
     } else {
             chrome.action.setPopup({
-                popup: "popup/old-popup.html"
+                popup: "old-popup/index.html"
             })
     }
 }
@@ -309,7 +316,7 @@ if (typeof chrome.contextMenus !== "undefined") {
             twpConfig.addSiteToNeverTranslate(hostname)
         } else if (info.menuItemId == "more-options") {
             chrome.tabs.create({
-                url: chrome.runtime.getURL("/options/options.html")
+                url: chrome.runtime.getURL("/options/index.html")
             })
         } else if (info.menuItemId == "action-pdf-to-html") {
             const mimeType = tabToMimeType[tab.id]

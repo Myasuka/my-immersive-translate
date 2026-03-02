@@ -4,3 +4,5 @@ function globalIsPdf(tab){
   }
   return false
 }
+
+export { globalIsPdf };

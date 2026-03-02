@@ -7,3 +7,5 @@ web-ext-artifacts/
 .DS_Store
 *.pem
 .obsidian
+.output
+.wxt

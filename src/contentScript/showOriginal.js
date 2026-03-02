@@ -1,5 +1,8 @@
 "use strict";
 
+import { twpConfig } from "../lib/config.js";
+import { platformInfo } from "../lib/platformInfo.js";
+
 var showOriginal = {}
 
 twpConfig.onReady(function () {

@@ -5,12 +5,15 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
 
+// These tests read the pre-built output from .output/chrome-mv3/.
+// Run `npm run build` before running tests.
+
 test("chrome manifest should use MV3 service worker", () => {
-  const manifestPath = path.join(root, "src", "chrome_manifest.json");
+  const manifestPath = path.join(root, ".output", "chrome-mv3", "manifest.json");
   const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.background?.service_worker, "background/background-entry.js");
+  assert.ok(manifest.background?.service_worker, "manifest.background.service_worker should exist");
   assert.ok(manifest.action, "manifest.action should exist for MV3");
 });
 
